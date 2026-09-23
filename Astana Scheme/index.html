@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Схема районов Астаны</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700&family=Onest:wght@600;800&display=swap">
+<style>
+html,body{margin:0;height:100%;background:#F3F5F4;color:#16252A}
+.wrap{position:relative;width:min(96vw,96vh);margin:0 auto}
+.brand{position:absolute;left:4.2%;top:4.2%;font:700 clamp(11px,1.6vw,15px) "Unbounded",system-ui,sans-serif;letter-spacing:.14em}
+svg{display:block;width:100%;height:auto}
+.dist{stroke:#fff;stroke-width:2.5;stroke-linejoin:round;cursor:pointer;transition:fill .18s,opacity .18s}
+.dist:hover{filter:brightness(.96)}
+.dist:focus{outline:none}
+.dist:focus-visible{stroke:#16252A}
+.dist.on{stroke-width:4}
+.pill{position:absolute;transform:translate(-50%,-50%);margin:0;cursor:pointer;white-space:nowrap;
+  font-family:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:600;font-size:clamp(13px,2vw,19px);line-height:1;
+  padding:.5em .85em;border-radius:999px;border:2px solid #fff;background:#fff;color:#14232A;
+  box-shadow:0 1px 2px rgba(22,37,42,.18),0 4px 12px rgba(22,37,42,.12);transition:color .18s,border-color .18s,font-size .18s}
+.pill:hover{box-shadow:0 2px 4px rgba(22,37,42,.22),0 6px 16px rgba(22,37,42,.16)}
+.pill:focus-visible{outline:3px solid #16252A;outline-offset:2px}
+.pill.on{font-weight:800;font-size:clamp(15px,2.3vw,22px)}
+@media (prefers-reduced-motion:reduce){.dist,.pill{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="brand">АСТАНА</div>
+  <svg id="map" viewBox="0 0 960 960" aria-label="Схема районов Астаны"></svg>
+</div>
+<script>
+const DISTRICTS = [{"id": "esil", "name": "Есиль", "d": "M353.2 760.6 L327.5 753.7 L326.7 737.8 L328.3 718.8 L364.6 556.0 L369.9 510.0 L380.6 481.6 L387.1 473.9 L390.8 477.1 L396.8 478.5 L403.3 486.2 L404.3 496.9 L411.2 513.5 L411.5 516.9 L418.0 525.8 L416.7 530.4 L410.4 534.6 L409.4 538.3 L414.8 548.0 L416.1 560.7 L423.4 566.3 L442.2 567.7 L445.1 569.1 L448.0 573.6 L452.9 576.6 L464.9 579.4 L478.1 571.6 L496.1 577.0 L508.0 572.0 L512.9 571.8 L589.1 584.3 L615.0 596.0 L609.0 607.1 L589.3 629.7 L578.6 638.3 L559.4 664.4 L548.7 681.7 L538.0 677.3 L535.6 681.7 L528.2 683.1 L541.5 720.7 L548.7 749.3 L533.8 756.6 L526.7 762.6 L524.8 766.5 L525.1 803.6 L526.2 806.2 L544.5 829.6 L546.7 844.3 L539.6 888.3 L537.3 919.8 L461.0 920.0 L456.1 902.2 L442.0 906.3 L439.0 889.7 L435.8 885.9 L428.1 886.9 L431.4 864.1 L415.8 860.3 L416.6 851.2 L422.7 815.5 L416.7 814.1 L420.0 778.6 L399.5 772.9 L398.0 774.1 L396.1 771.9 Z", "lx": 456.4, "ly": 679.1, "base": "#BFD8E4", "strong": "#1F7FA6"}, {"id": "almaty", "name": "Алматы", "d": "M411.4 515.7 L404.3 496.9 L403.3 486.2 L400.1 482.8 L411.7 473.9 L418.6 471.1 L421.0 468.5 L426.8 466.6 L442.4 454.3 L445.1 450.1 L449.6 449.3 L453.8 441.8 L459.4 439.6 L462.7 435.2 L467.3 431.9 L468.0 429.5 L471.1 426.1 L475.2 425.7 L484.2 410.2 L496.8 413.0 L508.1 420.8 L510.0 419.2 L513.9 419.0 L520.2 415.8 L520.2 411.4 L520.9 410.2 L524.4 408.1 L529.9 399.9 L538.5 397.0 L544.0 397.4 L550.1 395.4 L557.7 386.3 L564.8 383.5 L579.2 371.2 L582.9 370.2 L589.1 379.9 L631.6 400.7 L649.0 458.6 L661.7 498.1 L696.9 495.9 L696.9 497.7 L716.8 497.1 L744.9 514.1 L749.7 515.5 L733.8 563.1 L687.9 545.5 L662.6 534.4 L647.1 529.6 L562.1 506.4 L552.5 505.4 L527.2 506.2 L519.0 504.0 L509.0 498.3 L502.0 507.4 L458.4 527.2 ZM835.4 476.7 L814.8 488.4 L808.2 486.4 L790.5 453.3 L782.2 445.3 L838.8 446.3 L838.9 463.0 Z", "lx": 568.3, "ly": 471.3, "base": "#EFD3AE", "strong": "#A8661A"}, {"id": "saryarka", "name": "Сарыарка", "d": "M301.0 447.9 L296.1 448.5 L294.1 445.7 L288.0 442.0 L285.1 435.2 L276.9 429.3 L268.1 428.9 L264.2 431.9 L263.5 429.5 L260.5 428.7 L259.0 426.5 L259.8 423.9 L258.5 421.7 L255.1 422.1 L254.1 423.9 L251.7 421.7 L249.9 422.7 L247.9 420.6 L246.9 421.4 L243.5 417.4 L239.5 418.4 L239.7 417.2 L237.5 417.4 L236.7 416.6 L236.7 414.2 L234.5 412.6 L231.4 413.2 L223.2 410.2 L224.2 408.7 L222.4 408.3 L220.3 404.7 L221.8 403.7 L214.9 398.4 L207.4 398.9 L195.6 401.9 L190.9 400.7 L188.9 398.4 L186.3 399.1 L185.7 397.6 L183.3 399.7 L182.7 397.6 L180.3 399.3 L179.9 397.0 L177.4 397.8 L176.1 396.4 L175.7 394.6 L176.6 394.0 L175.4 392.6 L174.4 393.8 L174.5 396.6 L173.3 397.0 L171.1 396.4 L170.4 398.0 L168.8 398.2 L166.8 394.4 L165.4 396.4 L164.2 396.6 L163.3 395.4 L165.0 391.8 L164.0 391.8 L163.3 390.2 L161.6 390.6 L160.6 389.8 L160.1 386.9 L151.8 381.3 L155.2 379.7 L148.9 372.8 L149.2 370.2 L152.3 371.2 L152.5 363.1 L145.6 359.7 L146.1 358.3 L145.6 357.5 L147.9 356.9 L149.0 355.7 L148.5 354.9 L150.3 354.5 L149.8 353.7 L150.4 352.9 L148.9 352.0 L149.9 351.2 L149.5 349.0 L150.8 348.2 L150.3 345.8 L156.8 334.3 L158.7 327.6 L154.9 326.2 L168.8 298.6 L174.6 283.4 L226.9 309.9 L229.0 304.4 L292.4 336.7 L295.9 339.1 L305.0 353.3 L309.9 357.7 L410.1 408.3 L406.6 414.8 L401.8 418.8 L381.9 422.9 L389.6 467.0 L391.3 469.3 L387.1 473.9 L382.7 460.6 L379.0 457.2 L375.8 456.8 L363.3 463.2 L359.9 462.8 L350.1 458.2 L345.5 451.9 L318.3 448.3 Z", "lx": 266.0, "ly": 379.0, "base": "#CFE2C4", "strong": "#3F7A37"}, {"id": "baikonur", "name": "Байконур", "d": "M273.5 239.9 L269.0 242.3 L250.0 268.9 L229.0 304.4 L293.7 337.5 L298.6 342.6 L305.0 353.3 L309.9 357.7 L410.1 408.3 L406.6 414.8 L401.8 418.8 L381.9 422.9 L389.6 467.0 L391.3 469.3 L387.1 473.9 L390.8 477.1 L396.8 478.5 L400.1 482.8 L411.7 473.9 L418.6 471.1 L421.0 468.5 L426.8 466.6 L442.4 454.3 L445.1 450.1 L449.6 449.3 L453.8 441.8 L459.4 439.6 L462.7 435.2 L467.3 431.9 L468.0 429.5 L471.1 426.1 L475.2 425.7 L484.2 410.2 L496.8 413.0 L508.1 420.8 L510.0 419.2 L513.9 419.0 L520.2 415.8 L520.2 411.4 L520.9 410.2 L524.4 408.1 L529.9 399.9 L538.5 397.0 L544.0 397.4 L550.1 395.4 L557.7 386.3 L564.8 383.5 L579.2 371.2 L582.9 370.2 L571.6 335.7 L628.1 279.0 L596.9 220.5 L574.8 249.5 L562.8 260.8 L561.8 270.3 L557.2 278.4 L551.8 279.0 L542.6 289.9 L442.2 249.1 L475.7 208.0 L476.0 195.1 L447.5 202.5 L438.1 218.5 L415.2 232.4 L387.0 226.1 L351.4 240.9 L332.6 170.5 L295.2 179.7 L308.9 233.2 L284.0 241.1 L282.9 238.7 L278.1 241.5 L276.5 238.3 ZM270.7 232.2 L236.6 248.1 L222.4 230.0 L234.9 220.1 L232.6 193.3 L250.4 184.4 ZM677.9 140.4 L669.5 131.7 L657.1 111.1 L690.3 94.6 L710.7 72.4 L724.9 72.0 L721.9 76.4 L728.2 81.1 L732.5 74.6 L739.1 79.1 L736.0 88.7 L731.0 96.6 L727.8 103.9 L723.3 107.1 L714.1 116.8 L711.1 123.2 L695.2 141.6 L697.3 143.4 L693.6 147.3 L698.4 152.7 L695.5 156.1 L688.8 148.9 Z", "lx": 425.3, "ly": 318.6, "base": "#D8CFEA", "strong": "#6E56A8"}, {"id": "nura", "name": "Нура", "d": "M387.1 473.9 L380.6 481.6 L369.9 510.0 L364.6 556.0 L328.6 715.6 L326.7 737.8 L327.5 753.7 L269.8 741.4 L265.0 736.8 L248.1 732.2 L240.4 733.0 L234.6 735.2 L228.5 734.2 L210.9 736.6 L207.1 735.4 L204.7 732.2 L200.4 729.5 L194.0 719.2 L186.0 711.2 L184.2 702.1 L181.8 698.5 L178.4 696.2 L174.5 688.4 L167.9 681.7 L167.8 671.6 L166.6 667.4 L168.9 655.7 L168.5 651.9 L166.6 648.0 L161.8 642.8 L155.9 642.6 L131.1 578.2 L121.1 556.8 L134.9 548.2 L134.2 539.9 L135.9 532.4 L145.8 513.0 L144.7 512.2 L145.1 501.1 L144.1 478.3 L147.0 478.3 L147.1 473.1 L152.2 472.9 L152.5 462.4 L167.1 461.2 L165.4 425.3 L181.1 428.7 L201.9 418.4 L199.3 415.0 L198.0 416.4 L196.5 415.6 L194.9 417.0 L194.1 413.0 L191.1 414.4 L189.2 411.6 L190.3 409.7 L188.0 410.4 L188.4 408.7 L186.8 404.9 L189.4 402.9 L189.5 401.1 L195.6 401.9 L207.4 398.9 L214.9 398.4 L221.8 403.7 L220.3 404.7 L222.4 408.3 L224.2 408.7 L223.2 410.2 L231.4 413.2 L234.5 412.6 L236.7 414.2 L236.7 416.6 L237.5 417.4 L239.7 417.2 L239.5 418.4 L243.5 417.4 L246.9 421.4 L247.9 420.6 L249.9 422.7 L251.7 421.7 L254.1 423.9 L255.1 422.1 L258.5 421.7 L259.8 423.9 L259.0 426.5 L260.5 428.7 L263.5 429.5 L264.2 431.9 L268.1 428.9 L272.3 428.5 L275.9 428.9 L281.0 431.7 L285.5 435.8 L288.0 442.0 L294.1 445.7 L296.1 448.5 L318.3 448.3 L345.5 451.9 L350.1 458.2 L359.9 462.8 L363.3 463.2 L375.8 456.8 L379.0 457.2 L382.7 460.6 Z", "lx": 252.5, "ly": 573.0, "base": "#F0C9C4", "strong": "#A4463F"}];
+const NS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById("map"), wrap = document.getElementById("wrap");
+let selected = "esil";
+const els = DISTRICTS.map(d => {
+  const p = document.createElementNS(NS, "path");
+  p.setAttribute("d", d.d); p.setAttribute("class", "dist");
+  p.setAttribute("tabindex", "0"); p.setAttribute("aria-label", d.name);
+  p.addEventListener("click", () => select(d.id));
+  p.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(d.id); } });
+  svg.appendChild(p);
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "pill"; b.textContent = d.name;
+  b.style.left = (d.lx / 960 * 100) + "%"; b.style.top = (d.ly / 960 * 100) + "%";
+  b.addEventListener("click", () => select(d.id));
+  wrap.appendChild(b);
+  return { d, p, b };
+});
+function paint() {
+  els.forEach(({ d, p, b }) => {
+    const on = d.id === selected;
+    p.style.fill = on ? d.strong : d.base;
+    p.style.opacity = selected && !on ? 0.6 : 1;
+    p.classList.toggle("on", on);
+    b.classList.toggle("on", on);
+    b.style.color = on ? d.strong : "";
+    b.style.borderColor = on ? d.strong : "";
+    b.setAttribute("aria-pressed", on);
+  });
+}
+function select(id) {
+  selected = selected === id ? null : id;
+  paint();
+  // событие для интеграции: detail = { id, name } или null
+  window.dispatchEvent(new CustomEvent("district-select", { detail: selected ? { id: selected, name: DISTRICTS.find(x => x.id === selected).name } : null }));
+}
+window.astanaScheme = { select, districts: DISTRICTS.map(({ id, name }) => ({ id, name })) };
+paint();
+</script>
+</body>
+</html>
