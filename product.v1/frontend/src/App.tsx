@@ -14,7 +14,8 @@ import { AiPanel, type AiStatus } from './components/result/AiPanel'
 import { ImproveCard } from './components/result/ImproveCard'
 import { EventCard } from './components/result/EventCard'
 import { LeaderboardDrawer } from './components/LeaderboardDrawer'
-import { Drawer } from './components/ui'
+import { X } from 'lucide-react'
+import { Button } from './components/ui'
 
 export type PlanStatus = 'empty' | 'draft' | 'invalid' | 'valid'
 
@@ -101,10 +102,10 @@ export default function App() {
 
   // ---- Панели ------------------------------------------------------------
   const [selectedDistrict, setSelectedDistrict] = useState<DistrictId | null>(null)
-  const [districtOpen, setDistrictOpen] = useState(false)
   const [leaderboardOpen, setLeaderboardOpen] = useState(false)
-  const openDistrict = (id: DistrictId) => { setSelectedDistrict(id); setDistrictOpen(true) }
-  const onMapSelect = (id: DistrictId) => openDistrict(id)
+  // Показатели района открываются под картой, без затемнения страницы.
+  const openDistrict = (id: DistrictId) => setSelectedDistrict(id)
+  const onMapSelect = (id: DistrictId) => setSelectedDistrict((cur) => (cur === id ? null : id))
 
   const applyPreset = (id: string) => {
     if (id === '__clear') { plan.clear(); return }
@@ -138,6 +139,15 @@ export default function App() {
 
         <div className="space-y-5">
           <CityMap catalog={catalog} districts={districtsForMap} showAfter={showAfter} selected={selectedDistrict} onSelect={onMapSelect} />
+          {selectedResult && (
+            <section aria-label="Показатели района" className="card animate-fade-up p-4">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <h2 className="text-base font-semibold">{catalog.districts.find((d) => d.id === selectedResult.districtId)?.name}</h2>
+                <Button variant="ghost" size="sm" aria-label="Закрыть показатели района" onClick={() => setSelectedDistrict(null)}><X className="size-4" /></Button>
+              </div>
+              <DistrictDetail catalog={catalog} district={selectedResult} showAfter={showAfter} />
+            </section>
+          )}
           <Portfolio
             catalog={catalog}
             decisions={plan.decisions}
@@ -163,10 +173,6 @@ export default function App() {
           </p>
         </div>
       </main>
-
-      <Drawer open={districtOpen && !!selectedResult} onClose={() => setDistrictOpen(false)} title={selectedResult ? catalog.districts.find((d) => d.id === selectedResult.districtId)?.name : ''}>
-        {selectedResult && <DistrictDetail catalog={catalog} district={selectedResult} showAfter={showAfter} />}
-      </Drawer>
 
       <LeaderboardDrawer
         open={leaderboardOpen}

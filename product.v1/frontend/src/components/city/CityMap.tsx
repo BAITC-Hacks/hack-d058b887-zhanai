@@ -3,13 +3,21 @@ import { TriangleAlert } from 'lucide-react'
 import type { Catalog, DistrictId } from '../../data/dataset'
 import type { DistrictResult } from '../../api'
 import { ASTANA_DISTRICTS, ASTANA_VIEWBOX } from '../../data/astanaGeometry'
-import { DISTRICT_SCALE_MAX, DISTRICT_SCALE_MIN, DISTRICT_SCALE_STEPS, districtFill } from '../../lib/scales'
 import { f1, signed } from '../../lib/format'
 import { SectionTitle } from '../ui'
 
 // Реальные границы пяти районов (OpenStreetMap, упрощено ~40 м), см.
-// data/astanaGeometry.ts. Заливка — оценка района (темнее = выше), подписи —
-// HTML-«таблетки» поверх SVG: они же кнопки выбора района.
+// data/astanaGeometry.ts. У каждого района свой цвет (как в Astana Scheme):
+// спокойный в обычном состоянии, насыщенный у выбранного. Изменение оценки
+// района показывается на подписи-«таблетке»; она же кнопка выбора района.
+
+export const DISTRICT_COLORS: Record<DistrictId, { base: string; strong: string }> = {
+  esil: { base: '#BFD8E4', strong: '#1F7FA6' },
+  almaty: { base: '#EFD3AE', strong: '#A8661A' },
+  saryarka: { base: '#CFE2C4', strong: '#3F7A37' },
+  baikonur: { base: '#D8CFEA', strong: '#6E56A8' },
+  nura: { base: '#F0C9C4', strong: '#A4463F' },
+}
 
 interface Props {
   catalog: Catalog
@@ -34,17 +42,17 @@ export function CityMap({ catalog, districts, showAfter, selected, onSelect }: P
 
   return (
     <section aria-label="Карта районов" className="card p-4">
-      <SectionTitle aside={showAfter ? 'оценка района: до → после плана' : 'оценка района сейчас'}>Город</SectionTitle>
+      <SectionTitle aside={selected ? 'нажмите ещё раз, чтобы снять выбор' : undefined}>Город</SectionTitle>
 
       <div className="astana-map" role="group" aria-label="Пять районов Астаны">
         <svg viewBox={`0 0 ${VW} ${VH}`} className="block h-auto w-full" aria-hidden="true">
-          {shapes.map(({ d, value, isSel }) => (
+          {shapes.map(({ d, isSel }) => (
             <path
               key={d.id}
               d={ASTANA_DISTRICTS[d.id].path}
-              fill={districtFill(value)}
-              stroke={isSel ? '#0b0b0b' : '#ffffff'}
-              strokeWidth={isSel ? 3 : 2}
+              fill={isSel ? DISTRICT_COLORS[d.id].strong : DISTRICT_COLORS[d.id].base}
+              stroke="#ffffff"
+              strokeWidth={isSel ? 3.5 : 2.5}
               strokeLinejoin="round"
               vectorEffect="non-scaling-stroke"
               className="astana-dist"
@@ -61,7 +69,7 @@ export function CityMap({ catalog, districts, showAfter, selected, onSelect }: P
               key={d.id}
               type="button"
               className="astana-pill"
-              style={{ left: `${(lx / VW) * 100}%`, top: `${(ly / VH) * 100}%` }}
+              style={{ left: `${(lx / VW) * 100}%`, top: `${(ly / VH) * 100}%`, ...(isSel ? { borderColor: DISTRICT_COLORS[d.id].strong, color: DISTRICT_COLORS[d.id].strong } : {}) }}
               aria-pressed={isSel}
               aria-label={`${d.name}: оценка ${showAfter ? `${f1(r.beforeScore)} → ${f1(r.afterScore)}` : f1(value)}${crit ? `, критических показателей ${crit}` : ''}`}
               onClick={() => onSelect(d.id)}
@@ -86,17 +94,9 @@ export function CityMap({ catalog, districts, showAfter, selected, onSelect }: P
         })}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-ink-3">
-        <div className="flex items-center gap-2">
-          <span className="tnum">{DISTRICT_SCALE_MIN}</span>
-          <div className="flex h-2 overflow-hidden rounded-sm" aria-hidden="true">
-            {DISTRICT_SCALE_STEPS.map((c) => <span key={c} className="w-2" style={{ background: c }} />)}
-          </div>
-          <span className="tnum">{DISTRICT_SCALE_MAX}</span>
-          <span>темнее = выше оценка района</span>
-        </div>
-        <span className={clsx(selected && 'text-ink-2')}>границы районов: © OpenStreetMap · нажмите район, чтобы увидеть 10 показателей</span>
-      </div>
+      <p className="mt-3 text-center text-[11px] text-ink-3">
+        {showAfter ? 'на подписи: оценка района до → после плана' : 'на подписи: оценка района сейчас'} · нажмите район, чтобы увидеть 10 показателей · границы: © OpenStreetMap
+      </p>
     </section>
   )
 }

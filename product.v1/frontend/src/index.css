@@ -117,10 +117,7 @@
 }
 .astana-dist {
   cursor: pointer;
-  transition: fill 0.5s, filter 0.15s;
-}
-.astana-dist:hover {
-  filter: brightness(0.93);
+  transition: fill 0.25s;
 }
 .astana-pill {
   position: absolute;
@@ -162,8 +159,11 @@
   font-variant-numeric: tabular-nums;
 }
 .astana-pill[aria-pressed='true'] {
-  border-color: #0b0b0b;
   z-index: 1;
+}
+.astana-pill[aria-pressed='true'] .astana-pill-score {
+  color: inherit;
+  font-weight: 600;
 }
 .astana-pill[aria-pressed='true'] .astana-pill-name {
   font-weight: 800;
