@@ -47,9 +47,9 @@ export const BAND_LABEL: Record<IndicatorBand, string> = {
 
 /** Фиксированный порядок категорий по палитре: цвет следует за сущностью. */
 export const DIRECTION_COLOR: Record<DirectionId, string> = {
-  transport: '#2a78d6',
-  safety: '#eb6834',
-  ecology: '#1baf7a',
-  services: '#eda100',
-  social: '#e87ba4',
+  transport: '#1F7FA6',
+  safety: '#A4463F',
+  ecology: '#3F7A37',
+  services: '#6E56A8',
+  social: '#A8661A',
 }

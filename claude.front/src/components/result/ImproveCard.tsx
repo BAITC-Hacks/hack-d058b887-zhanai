@@ -29,8 +29,8 @@ export function ImproveCard({ catalog, data, loading, currentScore, onApply, cur
         <div className="space-y-3 text-[13px]">
           {data.swap ? (
             <div className="rounded-lg bg-surface-2 p-3">
-              <div className="flex items-start gap-2"><Wand2 className="mt-0.5 size-4 shrink-0 text-accent" /><p>{data.swap.text}</p></div>
-              <div className="mt-2 flex items-center justify-between pl-6">
+              <div className="flex items-start gap-2"><Wand2 className="mt-0.5 size-4 shrink-0 text-accent" /><p>Замените {data.swap.remove.measureId} · {catalog.districts.find((d) => d.id === data.swap!.remove.districtId)?.name ?? 'город'} на {data.swap.add.measureId} · {catalog.districts.find((d) => d.id === data.swap!.add.districtId)?.name ?? 'город'}.</p></div>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 pl-6">
                 <span className="tnum">
                   Score <span className="font-medium">{f2(data.swap.score)}</span> <Delta value={data.swap.delta} className="ml-1" /> · стоимость {data.swap.cost}
                 </span>
@@ -45,7 +45,7 @@ export function ImproveCard({ catalog, data, loading, currentScore, onApply, cur
               <span>
                 {optimumReached ? 'Это оптимум по полному перебору' : <>Оптимум по перебору: <span className="font-medium text-ink tnum">{f2(data.optimum.score)}</span>, стоимость {data.optimum.cost}</>}
               </span>
-              {!optimumReached && <Button variant="ghost" size="sm" onClick={() => onApply(data.optimum!.decisions)}>Показать</Button>}
+              {!optimumReached && <Button variant="ghost" size="sm" onClick={() => onApply(data.optimum!.decisions)}>Применить оптимум</Button>}
             </div>
           )}
           <p className="text-[11px] text-ink-3">Оптимум считается в рамках модели датасета и правил «{catalog.rules.ruleset === 'dataset' ? 'не больше 2 мер из направления' : 'все направления'}». Ваш план не меняется без нажатия.</p>

@@ -260,4 +260,3 @@ def run_agent(
         "summary": str(answer.get("summary", "")), "findings": [str(x) for x in answer.get("findings", [])], "risks": [str(x) for x in answer.get("risks", [])],
         "steps": tools.steps, "recommendation": recommendation, "grounded": grounded, "iterations": iterations,
     }
-

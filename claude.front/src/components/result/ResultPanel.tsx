@@ -29,20 +29,20 @@ export function ResultPanel({ catalog, sim, loading, status, decisionCount, impr
 
   return (
     <section aria-label="Результат" className={clsx('card p-4 transition-opacity', loading && 'opacity-80')} aria-busy={loading}>
-      <SectionTitle aside={base ? <span className="tnum">база {f2(base.score)}</span> : null}>Astana Quality of Life Score</SectionTitle>
+      <SectionTitle aside={base ? <span className="tnum">база {f2(base.score)}</span> : null}>{status === 'draft' ? 'Предварительная оценка' : 'Astana Quality of Life Score'}</SectionTitle>
       <div className="flex items-end gap-3">
-        <div className="text-[48px] leading-none font-semibold tracking-tight">{f2(animated)}</div>
-        {decisionCount > 0 && <Delta value={delta} className="mb-1 text-xl font-medium" />}
+        <div data-testid="score" className="score-number text-[48px] leading-none font-semibold tracking-tight">{sim && status !== 'invalid' ? f2(animated) : '—'}</div>
+        {shown && decisionCount > 0 && <Delta value={delta} className="mb-1 text-xl font-medium" />}
       </div>
       <div className="mt-2 min-h-5 text-[12px]">
-        {status === 'empty' && <span className="text-ink-3">Соберите пять мер, и балл пересчитается на каждом шаге</span>}
+        {loading ? <span className="text-ink-2" role="status">Пересчитываем текущий план…</span> : status === 'empty' && <span className="text-ink-3">Соберите пять мер, и балл пересчитается на каждом шаге</span>}
         {status === 'draft' && <span className="text-ink-2">Предварительно · {decisionCount} из {catalog.rules.decisions} решений</span>}
         {status === 'valid' && (
           <span className="text-ink-2">
             План допустим
             {improve?.percentile !== null && improve?.percentile !== undefined && (
               <>
-                {' · '}лучше {improve.percentileExact ? '' : '≈ '}<span className="font-medium text-ink tnum">{f1(Math.min(99.9, improve.percentile))} %</span>
+                {' · '}лучше {improve.percentileExact ? '' : '≈ '}<span className="font-medium text-ink tnum">{f1(improve.percentile)} %</span>
                 {improve.totalPlans ? <> из <span className="tnum">{improve.totalPlans.toLocaleString('ru-RU')}</span> допустимых планов</> : ' возможных планов'}
               </>
             )}
@@ -57,11 +57,11 @@ export function ResultPanel({ catalog, sim, loading, status, decisionCount, impr
         )}
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      {sim && <div className="mt-4 grid grid-cols-3 gap-2">
         <Tile label="Критических" value={critAfter} before={decisionCount > 0 ? critBefore : null} lowerIsBetter />
         <Tile label="Худший район" text={minAfter?.name ?? '—'} sub={shown && decisionCount > 0 ? `${f1(base!.minDistrictScore)} → ${f1(shown.minDistrictScore)}` : base ? f1(base.minDistrictScore) : ''} />
         <Tile label="Средняя по городу" text={shown && decisionCount > 0 ? f1(shown.cityAverage) : base ? f1(base.cityAverage) : '—'} sub={shown && decisionCount > 0 ? `было ${f1(base!.cityAverage)}` : 'взвешено по населению'} />
-      </div>
+      </div>}
 
       {shown && (
         <div className="mt-4 grid grid-cols-5 gap-1" aria-label="Покрытие направлений">

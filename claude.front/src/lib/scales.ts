@@ -1,22 +1,7 @@
-// Цветовые шкалы по методике dataviz: величина — один оттенок (синий) от
-// светлого к тёмному; состояние — зарезервированные статусные цвета, всегда
-// вместе с иконкой и подписью.
+// Цвета направлений повторяют пять насыщенных оттенков Astana Scheme.
+// Состояния по-прежнему сопровождаются текстом, а не передаются только цветом.
 
 import type { DirectionId } from '../data/dataset'
-
-/** Последовательная синяя шкала, шаги 100…700. */
-const BLUE_STEPS = ['#cde2fb', '#b7d3f6', '#9ec5f4', '#86b6ef', '#6da7ec', '#5598e7', '#3987e5', '#2a78d6', '#256abf', '#1c5cab', '#184f95', '#104281', '#0d366b']
-
-/** Диапазон оценок районов в датасете узкий (около 49–63), поэтому шкала 45–70. */
-export const DISTRICT_SCALE_MIN = 45
-export const DISTRICT_SCALE_MAX = 70
-
-export function districtFill(score: number) {
-  const t = Math.min(1, Math.max(0, (score - DISTRICT_SCALE_MIN) / (DISTRICT_SCALE_MAX - DISTRICT_SCALE_MIN)))
-  return BLUE_STEPS[Math.round(t * (BLUE_STEPS.length - 1))]
-}
-
-export const DISTRICT_SCALE_STEPS = BLUE_STEPS
 
 /** Относительная яркость по sRGB, чтобы выбрать цвет текста внутри заливки. */
 export function isDarkFill(hex: string) {
@@ -47,9 +32,9 @@ export const BAND_LABEL: Record<IndicatorBand, string> = {
 
 /** Фиксированный порядок категорий по палитре: цвет следует за сущностью. */
 export const DIRECTION_COLOR: Record<DirectionId, string> = {
-  transport: '#2a78d6',
-  safety: '#eb6834',
-  ecology: '#1baf7a',
-  services: '#eda100',
-  social: '#e87ba4',
+  transport: '#1F7FA6',
+  safety: '#A4463F',
+  ecology: '#3F7A37',
+  services: '#6E56A8',
+  social: '#A8661A',
 }

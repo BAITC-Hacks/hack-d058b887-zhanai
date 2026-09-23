@@ -16,9 +16,11 @@ interface Props {
   onPreset: (id: string) => void
   onAnalyze: () => void
   onOpenLeaderboard: () => void
+  fixed?: boolean
+  busy?: boolean
 }
 
-export function Header({ catalog, decisions, cost, budget, status, apiMode, onPreset, onAnalyze, onOpenLeaderboard }: Props) {
+export function Header({ catalog, decisions, cost, budget, status, apiMode, onPreset, onAnalyze, onOpenLeaderboard, fixed, busy }: Props) {
   const remaining = budget - cost
   const over = remaining < 0
   const segments = decisions.flatMap((d) => {
@@ -28,8 +30,8 @@ export function Header({ catalog, decisions, cost, budget, status, apiMode, onPr
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-page/90 backdrop-blur">
-      <div className="mx-auto flex max-w-[1600px] items-center gap-6 px-6 py-3">
-        <div className="min-w-[210px]">
+      <div className="app-header mx-auto flex max-w-[1800px] flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-6">
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
             <h1 className="text-[17px] font-semibold tracking-tight">Аким на 5 часов</h1>
             <Chip title={apiMode === 'mock' ? 'Расчёт идёт в браузере, сервер не подключён' : 'Расчёт на сервере'}>{apiMode === 'mock' ? 'демо-режим' : 'сервер'}</Chip>
@@ -37,7 +39,7 @@ export function Header({ catalog, decisions, cost, budget, status, apiMode, onPr
           <p className="text-[12px] text-ink-3">Симулятор городских решений · условный датасет</p>
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className="header-budget min-w-[180px] flex-1">
           <div className="mb-1.5 flex items-baseline justify-between text-[12px]">
             <span className="text-ink-2">
               Бюджет <span className="font-medium text-ink tnum">{f0(cost)}</span> из <span className="tnum">{f0(budget)}</span>
@@ -65,10 +67,10 @@ export function Header({ catalog, decisions, cost, budget, status, apiMode, onPr
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="header-actions flex flex-wrap items-center gap-2">
           <select
             aria-label="Готовые сценарии"
-            className="h-9 rounded-lg border border-line-2 bg-surface px-2.5 text-sm text-ink-2 hover:bg-surface-2"
+            className="min-h-11 max-w-[220px] rounded-lg border border-line-2 bg-surface px-2.5 text-sm text-ink-2 hover:bg-surface-2"
             value=""
             onChange={(e) => { if (e.target.value) onPreset(e.target.value) }}
           >
@@ -81,8 +83,8 @@ export function Header({ catalog, decisions, cost, budget, status, apiMode, onPr
           <Button variant="ghost" onClick={onOpenLeaderboard} aria-label="Лидерборд команд" title="Лидерборд команд">
             <Trophy className="size-4" /> Команды
           </Button>
-          <Button variant="primary" onClick={onAnalyze} disabled={status !== 'valid'} title={status === 'valid' ? 'Разобрать план с помощью AI' : 'Сначала соберите допустимый план из пяти мер'}>
-            <Sparkles className="size-4" /> AI-анализ
+          <Button variant="primary" onClick={onAnalyze} disabled={status !== 'valid' || busy || fixed} title={status === 'valid' ? 'Зафиксировать результат и получить анализ' : 'Сначала соберите допустимый план из пяти мер'}>
+            <Sparkles className="size-4" /> {busy ? 'Фиксируем…' : fixed ? 'План зафиксирован' : 'Зафиксировать план'}
           </Button>
         </div>
       </div>

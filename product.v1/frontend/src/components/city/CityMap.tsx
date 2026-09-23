@@ -41,10 +41,11 @@ export function CityMap({ catalog, districts, showAfter, selected, onSelect }: P
   const shapes = [...items].sort((a, b) => Number(a.isSel) - Number(b.isSel))
 
   return (
-    <section aria-label="Карта районов" className="card p-4">
+    <section aria-label="Карта районов" className="card city-map-card p-4">
       <SectionTitle aside={selected ? 'нажмите ещё раз, чтобы снять выбор' : undefined}>Город</SectionTitle>
 
       <div className="astana-map" role="group" aria-label="Пять районов Астаны">
+        <span className="astana-brand" aria-hidden="true">АСТАНА</span>
         <svg viewBox={`0 0 ${VW} ${VH}`} className="block h-auto w-full" aria-hidden="true">
           {shapes.map(({ d, isSel }) => (
             <path
@@ -95,7 +96,7 @@ export function CityMap({ catalog, districts, showAfter, selected, onSelect }: P
       </div>
 
       <p className="mt-3 text-center text-[11px] text-ink-3">
-        {showAfter ? 'на подписи: оценка района до → после плана' : 'на подписи: оценка района сейчас'} · нажмите район, чтобы увидеть 10 показателей · границы: © OpenStreetMap
+        {showAfter ? 'на подписи: оценка района до → после плана' : 'на подписи: оценка района сейчас'} · нажмите район, чтобы увидеть 10 показателей · границы: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">OpenStreetMap contributors, ODbL</a>
       </p>
     </section>
   )

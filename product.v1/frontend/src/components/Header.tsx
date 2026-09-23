@@ -34,8 +34,8 @@ export function Header({ catalog, decisions, cost, budget, status, apiMode, onPr
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-page/90 backdrop-blur">
-      <div className="mx-auto flex max-w-[1600px] items-center gap-6 px-6 py-3">
-        <div className="min-w-[210px]">
+      <div className="app-header mx-auto flex max-w-[1600px] items-center gap-6 px-6 py-3">
+        <div className="header-brand min-w-[210px]">
           <div className="flex items-center gap-2">
             <h1 className="text-[17px] font-semibold tracking-tight">Аким на 5 часов</h1>
             <Chip title={mode === 'mock' ? 'Расчёт идёт в браузере, сервер не подключён' : `Расчёт на сервере${aiNote}`}>{apiStatus.resolving ? 'подключение…' : mode === 'mock' ? 'демо-режим' : 'сервер'}</Chip>
@@ -43,7 +43,7 @@ export function Header({ catalog, decisions, cost, budget, status, apiMode, onPr
           <p className="text-[12px] text-ink-3">Симулятор городских решений · условный датасет</p>
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className="header-budget min-w-0 flex-1">
           <div className="mb-1.5 flex items-baseline justify-between text-[12px]">
             <span className="text-ink-2">
               Бюджет <span className="font-medium text-ink tnum">{f0(cost)}</span> из <span className="tnum">{f0(budget)}</span>
@@ -71,7 +71,7 @@ export function Header({ catalog, decisions, cost, budget, status, apiMode, onPr
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="header-actions flex items-center gap-2">
           <select
             aria-label="Готовые сценарии"
             className="h-9 rounded-lg border border-line-2 bg-surface px-2.5 text-sm text-ink-2 hover:bg-surface-2"
