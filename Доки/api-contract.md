@@ -11,7 +11,7 @@
 
 Тесты: `PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q`. Документация FastAPI после запуска: `http://127.0.0.1:8000/docs`.
 
-Ключ храните только в переменной `OPENAI_API_KEY` на сервере или в локальном файле `.env` в корне репозитория (он исключён из Git). Без ключа `/api/explain` возвращает проверенное шаблонное объяснение со `status: "fallback_no_ai"`. Модель: `AI_MODEL` (по умолчанию `gpt-6-astra`), режим правил: `RULESET=dataset` или `RULESET=all_directions`. Последний добавляет требование всех пяти направлений. Режим задаётся при запуске сервера, а не клиентом.
+Ключ храните только в переменной `OPENAI_API_KEY` на сервере или в локальном файле `.env` в корне репозитория (он исключён из Git). Без ключа `/api/explain` возвращает проверенное шаблонное объяснение со `status: "fallback_no_ai"`. Модель: `AI_MODEL` (по умолчанию `gpt-6-sol`), режим правил: `RULESET=dataset` или `RULESET=all_directions`. Последний добавляет требование всех пяти направлений. Режим задаётся при запуске сервера, а не клиентом.
 
 ## Основные запросы
 
@@ -59,7 +59,7 @@
   "status": "ai", "summary": "...", "strengths": ["..."],
   "risks": ["..."], "consequences": ["..."], "recommendations": ["..."],
   "decisions": [{"measureId":"M7","text":"..."}],
-  "model": "gpt-6-astra", "cached": false, "grounded": true,
+  "model": "gpt-6-sol", "cached": false, "grounded": true,
   "fallbackReason": null
 }
 ```

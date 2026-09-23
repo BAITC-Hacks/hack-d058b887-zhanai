@@ -10,7 +10,7 @@ from functools import lru_cache
 from .data_loader import RULES
 from .simulator import BASELINE
 
-MODEL = os.getenv("AI_MODEL", "gpt-6-astra")
+MODEL = os.getenv("AI_MODEL", "gpt-6-sol")
 PROMPT_VERSION = "v1"
 NUMBERS = re.compile(r"(?<![\w])[-+]?\d+(?:[.,]\d+)?")
 
