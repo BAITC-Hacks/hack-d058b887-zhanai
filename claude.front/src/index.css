@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-page: #f9f9f7;
+  --color-surface: #fcfcfb;
+  --color-surface-2: #f3f2ee;
+  --color-surface-3: #ebeae4;
+
+  --color-ink: #0b0b0b;
+  --color-ink-2: #52514e;
+  --color-ink-3: #898781;
+
+  --color-line: #e1e0d9;
+  --color-line-2: #c3c2b7;
+
+  --color-accent: #2a78d6;
+  --color-accent-soft: #cde2fb;
+  --color-accent-ink: #0d366b;
+
+  --color-up: #006300;
+  --color-down: #d03b3b;
+
+  --color-critical: #d03b3b;
+  --color-critical-soft: #fbe9e9;
+  --color-serious: #ec835a;
+  --color-serious-soft: #fdeee6;
+  --color-warn: #fab219;
+  --color-warn-soft: #fff4d6;
+  --color-good: #0ca30c;
+  --color-good-soft: #e3f6e3;
+
+  --radius-card: 12px;
+  --shadow-card: 0 1px 2px rgba(11, 11, 11, 0.04), 0 0 0 1px rgba(11, 11, 11, 0.06);
+  --shadow-pop: 0 12px 32px rgba(11, 11, 11, 0.14), 0 0 0 1px rgba(11, 11, 11, 0.06);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  body {
+    @apply bg-page text-ink font-sans antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility card {
+  @apply bg-surface rounded-card;
+  box-shadow: var(--shadow-card);
+}
+
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-2) transparent;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility animate-fade-up {
+  animation: fade-up 220ms ease-out both;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200px 0;
+  }
+  to {
+    background-position: 200px 0;
+  }
+}
+
+@utility skeleton {
+  @apply rounded-md bg-surface-2;
+  background-image: linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-surface-3) 50%, var(--color-surface-2) 100%);
+  background-size: 400px 100%;
+  animation: shimmer 1.2s linear infinite;
+}
