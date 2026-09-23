@@ -4,9 +4,12 @@ from __future__ import annotations
 import hashlib
 import itertools
 import json
+import os
+import tempfile
 from bisect import bisect_left
 from functools import lru_cache
 from pathlib import Path
+from threading import Lock
 
 from .data_loader import DISTRICTS, MEASURES, MEASURE_BY_ID, RULES
 from .schemas import Decision
@@ -22,6 +25,7 @@ POP = tuple(d["populationShare"] for d in DISTRICTS)
 IDS = tuple(m["id"] for m in MEASURES)
 DATA_HASH = hashlib.sha256(json.dumps((DISTRICTS, MEASURES, RULES), ensure_ascii=False, sort_keys=True).encode()).hexdigest()[:16]
 CACHE_DIR = Path(__file__).resolve().parents[1] / "data" / "cache"
+_SEARCH_LOCK = Lock()
 
 
 def _effects():
@@ -91,8 +95,14 @@ def _plan_key(score: float, plan: tuple[tuple[str, str | None], ...]):
     return (-score, sum(MEASURE_BY_ID[m]["cost"] for m, _ in plan), tuple((m, d or "") for m, d in plan))
 
 
-@lru_cache(maxsize=2)
 def population_stats(ruleset: str) -> dict:
+    # Concurrent first submissions share the costly exhaustive search.
+    with _SEARCH_LOCK:
+        return _population_stats(ruleset)
+
+
+@lru_cache(maxsize=2)
+def _population_stats(ruleset: str) -> dict:
     if ruleset not in {"dataset", "all_directions"}:
         raise ValueError("Unknown ruleset")
     path = CACHE_DIR / f"search-{DATA_HASH}-{ruleset}.json"
@@ -116,10 +126,15 @@ def population_stats(ruleset: str) -> dict:
     scores.sort()
     output = {"dataHash": DATA_HASH, "ruleset": ruleset, "count": len(scores), "scores": scores, "bestPlan": [{"measureId": m, "districtId": d} for m, d in best_plan], "bestScore": -best_key[0]}
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    tmp_path = path.with_suffix(".tmp")
-    with tmp_path.open("w", encoding="utf-8") as stream:
-        json.dump(output, stream, ensure_ascii=False, separators=(",", ":"))
-    tmp_path.replace(path)
+    # Unique files also allow separate worker processes to populate the cache.
+    descriptor, temporary = tempfile.mkstemp(prefix=path.stem, suffix=".tmp", dir=CACHE_DIR)
+    tmp_path = Path(temporary)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            json.dump(output, stream, ensure_ascii=False, separators=(",", ":"))
+        tmp_path.replace(path)
+    finally:
+        tmp_path.unlink(missing_ok=True)
     return output
 
 

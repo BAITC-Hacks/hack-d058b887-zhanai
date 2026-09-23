@@ -30,7 +30,7 @@ app.add_middleware(CORSMiddleware, allow_origins=os.getenv("CORS_ORIGINS", "http
 
 
 def _baseline(metrics: dict = BASELINE, indicators: dict | None = None) -> dict:
-    return {**{k: metrics[k] for k in ("score", "cityAverage", "minDistrictScore", "criticalCount")}, "districts": [{"districtId": d["id"], "name": d["name"], "score": metrics["districtScores"][d["id"]], "indicators": indicators[d["id"]] if indicators else d["indicators"]} for d in DISTRICTS]}
+    return {**{k: metrics[k] for k in ("score", "cityAverage", "minDistrictScore", "criticalCount")}, "minDistrictId": min(metrics["districtScores"], key=metrics["districtScores"].get), "districts": [{"districtId": d["id"], "name": d["name"], "score": metrics["districtScores"][d["id"]], "indicators": indicators[d["id"]] if indicators else d["indicators"]} for d in DISTRICTS]}
 
 
 @app.get("/api/health")
@@ -40,7 +40,7 @@ def health():
 
 @app.get("/api/catalog")
 def catalog():
-    return {"districts": DISTRICTS, "measures": MEASURES, "rules": RULES, "ruleset": RULESET, "dataVersion": RULES["dataVersion"], "baseline": _baseline(), "syntheticData": True}
+    return {"districts": DISTRICTS, "measures": MEASURES, "rules": RULES, "ruleset": RULESET, "dataVersion": RULES["dataVersion"], "baseline": _baseline(), "events": EVENTS, "syntheticData": True}
 
 
 @app.post("/api/simulate")
@@ -57,7 +57,14 @@ def simulation(request: PlanRequest):
     result = simulate(decisions, base if event else None, budget) if not errors else None
     if result is not None:
         result["facts"] = make_facts(result, cost, base_metrics, budget, event)
-    return {"valid": not errors, "errors": errors, "cost": cost, "remainingBudget": budget - cost if cost is not None else None, "budget": budget, "eventId": request.eventId, "decisionCount": len(decisions), "ruleset": RULESET, "dataVersion": RULES["dataVersion"], "baseline": _baseline(base_metrics, base), "result": result}
+    # An unfinished, otherwise legal plan can animate the city. Its official
+    # result remains null and cannot be explained or submitted to the leaderboard.
+    draft_only = {"EXACTLY_FIVE_REQUIRED", "ALL_DIRECTIONS_REQUIRED"}
+    preview = None
+    if len(decisions) < RULES["decisionCount"] and all(error["code"] in draft_only for error in errors):
+        preview = simulate(decisions, base if event else None, budget)
+        preview["facts"] = make_facts(preview, cost, base_metrics, budget, event)
+    return {"valid": not errors, "errors": errors, "cost": cost, "remainingBudget": budget - cost if cost is not None else None, "budget": budget, "eventId": request.eventId, "event": event, "decisionCount": len(decisions), "ruleset": RULESET, "dataVersion": RULES["dataVersion"], "baseline": _baseline(base_metrics, base), "result": result, "preview": preview}
 
 
 @app.post("/api/explain")
@@ -78,7 +85,9 @@ def improvement(request: PlanRequest):
 
 @app.post("/api/events/draw")
 def draw_event(request: EventDrawRequest = EventDrawRequest()):
-    return draw(request.seed)
+    if request.excludeId is not None and request.excludeId not in EVENT_BY_ID:
+        raise HTTPException(status_code=422, detail="Неизвестное событие.")
+    return draw(request.seed, request.excludeId)
 
 
 @app.get("/api/events")

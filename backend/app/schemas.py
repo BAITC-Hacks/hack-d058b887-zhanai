@@ -19,6 +19,7 @@ class PlanRequest(BaseModel):
 class EventDrawRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     seed: int | None = None
+    excludeId: str | None = None
 
 
 class LeaderboardRequest(PlanRequest):

@@ -4,7 +4,7 @@
 
 import { DATASET } from '../../data/dataset'
 import type { Api, ActiveEvent, Decision, LeaderboardEntry } from '../types'
-import { KNOWN_OPTIMUM, bestSwap, evaluate, fallbackExplain, presentationMarkdown, samplePercentile, simulate, toActiveEvent, validate } from './engine'
+import { KNOWN_OPTIMUM, bestSwap, evaluate, fallbackExplain, presentationMarkdown, simulate, toActiveEvent, validate } from './engine'
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const LB_KEY = 'akim.leaderboard.v1'
@@ -55,12 +55,11 @@ export const mockApi: Api = {
     if (validate(decisions, event?.budget ?? DATASET.rules.budget).length) {
       return { percentile: null, percentileExact: false, totalPlans: null, optimum: null, swap: null, message: 'Сначала соберите допустимый план из пяти мер' }
     }
-    const score = evaluate(decisions, event).result.score
     const swap = bestSwap(decisions, event)
     return {
-      percentile: samplePercentile(score, event),
+      percentile: null,
       percentileExact: false,
-      totalPlans: event ? null : KNOWN_OPTIMUM.totalPlans,
+      totalPlans: null,
       optimum: event ? null : { decisions: KNOWN_OPTIMUM.decisions, score: KNOWN_OPTIMUM.score, cost: KNOWN_OPTIMUM.cost },
       swap,
       message: swap ? null : 'Замена одной меры не улучшает план',
@@ -82,21 +81,24 @@ export const mockApi: Api = {
   async submit(teamName, decisions, eventId) {
     await wait(200)
     const event = eventById(eventId)
-    if (validate(decisions, event?.budget ?? DATASET.rules.budget).length) throw new Error('План недопустим, в лидерборд не записан')
+    if (event) throw new Error('Рейтинг сравнивает планы без событий, при одинаковых исходных условиях')
+    const name = teamName.trim().replace(/\s+/g, ' ')
+    if (!name || name.length > 40) throw new Error('Введите название команды от 1 до 40 символов')
+    if (validate(decisions, DATASET.rules.budget).length) throw new Error('План недопустим, в лидерборд не записан')
     const { result } = evaluate(decisions, event)
     const entry: LeaderboardEntry = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      teamName: teamName.trim(),
+      teamName: name,
       score: result.score,
       delta: result.delta,
       cost: decisions.reduce((a, d) => a + (DATASET.measures.find((m) => m.id === d.measureId)?.cost ?? 0), 0),
       criticalCount: result.criticalCount,
       decisions: decisions.map((d) => ({ ...d })),
-      eventId: event?.id ?? null,
+      eventId: null,
       createdAt: new Date().toISOString(),
     }
     memoryLeaderboard ??= readLeaderboard()
-    memoryLeaderboard = [...memoryLeaderboard, entry]
+    memoryLeaderboard = [...memoryLeaderboard.filter(saved => saved.teamName !== name), entry]
     writeLeaderboard(memoryLeaderboard)
     return entry
   },

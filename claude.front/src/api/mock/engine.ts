@@ -232,8 +232,8 @@ export function evaluate(decisions: Decision[], event: ActiveEvent | null): { re
 export function simulate(decisions: Decision[], event: ActiveEvent | null): SimulateResponse {
   const budget = event?.budget ?? rules.budget
   const errors = validate(decisions, budget)
-  const structural = errors.some((e) => e.code === 'UNKNOWN_MEASURE' || e.code === 'UNKNOWN_DISTRICT' || e.code === 'DISTRICT_REQUIRED')
-  const { result, baseline } = evaluate(structural ? decisions.filter((d) => measureById(d.measureId) && (measureById(d.measureId)!.scope === 'city' || d.districtId)) : decisions, event)
+  const admissible = errors.every((e) => e.code === 'EXACTLY_FIVE_REQUIRED' || e.code === 'ALL_DIRECTIONS_REQUIRED')
+  const { result, baseline } = evaluate(admissible ? decisions : [], event)
   const known = !errors.some((e) => e.code === 'UNKNOWN_MEASURE')
   const cost = known ? planCost(decisions) : null
   return {
@@ -246,7 +246,7 @@ export function simulate(decisions: Decision[], event: ActiveEvent | null): Simu
     dataVersion: DATASET.dataVersion,
     baseline,
     result: errors.length === 0 ? result : null,
-    preview: result,
+    preview: admissible && decisions.length < rules.decisions ? result : null,
     event,
   }
 }

@@ -14,8 +14,8 @@ EVENTS = [
 BY_ID = {event["id"]: event for event in EVENTS}
 
 
-def draw(seed: int | None = None) -> dict:
-    return random.Random(seed).choice(EVENTS)
+def draw(seed: int | None = None, exclude_id: str | None = None) -> dict:
+    return random.Random(seed).choice([event for event in EVENTS if event["id"] != exclude_id])
 
 
 def changed_baseline(event_id: str | None):

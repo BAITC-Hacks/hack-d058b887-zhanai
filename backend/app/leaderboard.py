@@ -35,14 +35,17 @@ def save(team_name: str, ruleset: str, decisions: list[dict], result: dict, cost
         raise ValueError("Название команды не может быть пустым или содержать управляющие символы.")
     if len(name) > 40:
         raise ValueError("Название команды должно быть не длиннее 40 символов.")
+    decisions = sorted(decisions, key=lambda item: int(item["measureId"][1:]))
     with _connect() as conn:
         conn.execute("""INSERT INTO entries(team_name,ruleset,data_version,score,delta,cost,critical_count,decisions)
             VALUES(?,?,?,?,?,?,?,?)
             ON CONFLICT(team_name,ruleset,data_version) DO UPDATE SET
             score=excluded.score,delta=excluded.delta,cost=excluded.cost,
-            critical_count=excluded.critical_count,decisions=excluded.decisions,updated_at=CURRENT_TIMESTAMP""",
+            critical_count=excluded.critical_count,decisions=excluded.decisions,updated_at=CURRENT_TIMESTAMP
+            WHERE entries.decisions != excluded.decisions OR entries.score != excluded.score""",
             (name, ruleset, RULES["dataVersion"], result["score"], result["delta"], cost, result["criticalCount"], json.dumps(decisions, ensure_ascii=False)))
-    return {"teamName": name, "score": result["score"], "delta": result["delta"], "cost": cost, "criticalCount": result["criticalCount"], "decisions": decisions, "ruleset": ruleset}
+        updated_at = conn.execute("SELECT updated_at FROM entries WHERE team_name=? AND ruleset=? AND data_version=?", (name, ruleset, RULES["dataVersion"])).fetchone()[0]
+    return {"teamName": name, "score": result["score"], "delta": result["delta"], "cost": cost, "criticalCount": result["criticalCount"], "decisions": decisions, "ruleset": ruleset, "updatedAt": updated_at.replace(" ", "T") + "Z"}
 
 
 def list_entries(ruleset: str) -> list[dict]:
@@ -50,4 +53,4 @@ def list_entries(ruleset: str) -> list[dict]:
         rows = conn.execute("""SELECT team_name,score,delta,cost,critical_count,decisions,updated_at
             FROM entries WHERE ruleset=? AND data_version=?
             ORDER BY score DESC, cost ASC, team_name ASC LIMIT 50""", (ruleset, RULES["dataVersion"])).fetchall()
-    return [{"rank": index, "teamName": row["team_name"], "score": row["score"], "delta": row["delta"], "cost": row["cost"], "criticalCount": row["critical_count"], "decisions": json.loads(row["decisions"]), "updatedAt": row["updated_at"]} for index, row in enumerate(rows, 1)]
+    return [{"rank": index, "teamName": row["team_name"], "score": row["score"], "delta": row["delta"], "cost": row["cost"], "criticalCount": row["critical_count"], "decisions": json.loads(row["decisions"]), "updatedAt": row["updated_at"].replace(" ", "T") + "Z"} for index, row in enumerate(rows, 1)]

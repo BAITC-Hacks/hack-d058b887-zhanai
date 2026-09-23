@@ -10,12 +10,12 @@
 
   --color-ink: #0b0b0b;
   --color-ink-2: #52514e;
-  --color-ink-3: #898781;
+  --color-ink-3: #69675f;
 
   --color-line: #e1e0d9;
   --color-line-2: #c3c2b7;
 
-  --color-accent: #2a78d6;
+  --color-accent: #2166b9;
   --color-accent-soft: #cde2fb;
   --color-accent-ink: #0d366b;
 
@@ -24,7 +24,7 @@
 
   --color-critical: #d03b3b;
   --color-critical-soft: #fbe9e9;
-  --color-serious: #ec835a;
+  --color-serious: #a24820;
   --color-serious-soft: #fdeee6;
   --color-warn: #fab219;
   --color-warn-soft: #fff4d6;
@@ -65,7 +65,7 @@
 
 @utility card {
   @apply bg-surface rounded-card;
-  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-line);
 }
 
 @utility tnum {
@@ -103,7 +103,58 @@
 
 @utility skeleton {
   @apply rounded-md bg-surface-2;
-  background-image: linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-surface-3) 50%, var(--color-surface-2) 100%);
-  background-size: 400px 100%;
-  animation: shimmer 1.2s linear infinite;
+}
+
+.workspace-grid { display: grid; grid-template-columns: 290px minmax(0, 1fr) 350px; align-items: start; }
+.catalog-column { position: sticky; top: 110px; height: calc(100dvh - 130px); display: flex; flex-direction: column; }
+.catalog-column > section { flex: 1; }
+.city-column > section[aria-label="Схема районов"] > svg { height: clamp(230px, 28vh, 300px); }
+.presentation .city-column > section[aria-label="Схема районов"] > svg { height: 48vh; }
+.mobile-action { display: none; }
+.skip-link { position: fixed; z-index: 60; left: 16px; top: 8px; padding: 12px; background: white; border: 2px solid var(--color-accent); transform: translateY(-200%); }
+.skip-link:focus { transform: none; }
+button, select, a, [role="button"] { touch-action: manipulation; }
+button:not(:disabled), select:not(:disabled) { cursor: pointer; }
+svg [role="button"]:focus-visible polygon { stroke: var(--color-accent); stroke-width: 4; }
+main, #catalog { scroll-margin-top: 140px; }
+.presentation .workspace-grid { grid-template-columns: minmax(0, 1.35fr) minmax(360px, 1fr); }
+.presentation .catalog-column, .presentation .event-section, .presentation .mobile-action { display: none; }
+.presentation .score-number { font-size: clamp(64px, 6vw, 104px); }
+.presentation .city-column svg { max-height: 52vh; }
+@media (min-width: 1900px) {
+  .presentation .workspace-grid { max-width: 2200px; gap: 32px; }
+  .presentation .result-column p, .presentation .result-column li { font-size: 18px; }
+}
+@media (max-width: 1199px) {
+  .workspace-grid { grid-template-columns: minmax(0, 1fr) minmax(300px, .85fr); padding-bottom: 92px; }
+  .catalog-column { display: none; }
+  .mobile-action { position: fixed; z-index: 30; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--color-surface); border-top: 1px solid var(--color-line); }
+  .header-actions { margin-left: auto; }
+}
+@media (max-width: 760px) {
+  .workspace-grid, .presentation .workspace-grid { grid-template-columns: minmax(0, 1fr); }
+  .app-header { gap: 10px; }
+  .header-budget { width: 100%; flex-basis: 100%; order: 2; }
+  .header-actions { width: 100%; margin: 0; gap: 6px; }
+  .header-actions > * { flex: 1; max-width: none; font-size: 12px; padding-inline: 8px; }
+  .header-actions > button:last-child { flex-basis: 100%; }
+  header { position: relative !important; }
+  .workspace-toolbar > div:first-child { align-items: stretch; flex-direction: column; }
+  .workspace-toolbar > div:first-child > div:first-child p:last-child { display: none; }
+  .workspace-toolbar > div:first-child > div:last-child button { padding-inline: 8px; font-size: 12px; }
+  .app-header > div:first-child p { display: none; }
+  .result-column { grid-row: auto; }
+  [role="dialog"] input, [role="dialog"] select { font-size: 16px; }
+  .city-column > section > div:last-child { flex-wrap: wrap; }
+  .presentation .city-column svg { max-height: none; }
+}
+@media (pointer: fine) and (min-width: 1200px) {
+  .portfolio-row select, .portfolio-row button:not([aria-label]) { min-height: 32px; }
+  .portfolio-row > div:first-child > span[title] { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media print {
+  header, .workspace-toolbar, .catalog-column, .mobile-action, .event-section, button, select, .skip-link { display: none !important; }
+  .workspace-grid { display: block; padding: 0; }
+  .card { break-inside: avoid; margin-bottom: 12px; }
+  body { background: white; }
 }

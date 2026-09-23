@@ -33,7 +33,7 @@ export function AiPanel({ catalog, status, data, error, canRun, onRun, onDownloa
 
       {status === 'idle' && (
         <div className="rounded-lg border border-dashed border-line-2 px-3 py-4 text-center">
-          <p className="text-[13px] text-ink-2">Модель объяснит сильные стороны, риски и последствия плана, опираясь только на расчёт. Числа она не выдумывает и не считает.</p>
+          <p className="text-[13px] text-ink-2">Разбор сильных сторон, рисков и последствий. Числа рассчитывает симулятор; текст модели проходит проверку чисел. Если AI недоступен, покажем пояснение по правилам.</p>
           <Button variant="primary" size="sm" className="mt-3" disabled={!canRun} onClick={onRun} title={canRun ? undefined : 'Нужен допустимый план из пяти мер'}>
             <Sparkles className="size-3.5" /> Получить анализ
           </Button>
@@ -51,7 +51,7 @@ export function AiPanel({ catalog, status, data, error, canRun, onRun, onDownloa
       {status === 'error' && (
         <div className="rounded-lg bg-critical-soft px-3 py-2.5 text-[13px] text-[#7a1f1f]">
           <div className="flex items-start gap-2"><ShieldAlert className="mt-0.5 size-4 shrink-0" /><span>{error ?? 'Сервис AI не ответил.'} Расчёт при этом не пострадал.</span></div>
-          <Button size="sm" className="mt-2" onClick={onRun}><RefreshCw className="size-3.5" /> Повторить</Button>
+          <Button size="sm" className="mt-2" onClick={onRun} disabled={!canRun}><RefreshCw className="size-3.5" /> Повторить</Button>
         </div>
       )}
 
@@ -82,7 +82,7 @@ export function AiPanel({ catalog, status, data, error, canRun, onRun, onDownloa
           </div>
           <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-3">
             <span className="text-[11px] text-ink-3">{catalog.rules.ruleset === 'dataset' ? 'Правила: ровно 5 мер, не больше 2 из направления' : 'Правила: все пять направлений'}</span>
-            <Button size="sm" onClick={onDownload} disabled={downloading}><Download className="size-3.5" /> {downloading ? 'Готовим…' : 'Скачать презентацию'}</Button>
+            <Button size="sm" onClick={onDownload} disabled={downloading || !canRun || status === 'stale'}><Download className="size-3.5" /> {downloading ? 'Готовим…' : 'Скачать план (.md)'}</Button>
           </div>
         </div>
       )}
