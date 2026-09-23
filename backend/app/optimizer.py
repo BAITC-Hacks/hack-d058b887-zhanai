@@ -145,10 +145,12 @@ def _best_completion(retained: tuple[tuple[str, str | None], ...], ruleset: str)
 
 def improve(decisions: list[Decision], ruleset: str) -> dict:
     errors = validate_plan(decisions, ruleset)
-    blocking = [e for e in errors if e["code"] != "EXACTLY_FIVE_REQUIRED"]
+    incomplete = len(decisions) < RULES["decisionCount"]
+    ignorable = {"EXACTLY_FIVE_REQUIRED", "ALL_DIRECTIONS_REQUIRED"} if incomplete else set()
+    blocking = [e for e in errors if e["code"] not in ignorable]
     if blocking:
         return {"valid": False, "errors": errors, "completion": None}
-    if len(decisions) < RULES["decisionCount"]:
+    if incomplete:
         retained = tuple((d.measureId, d.districtId) for d in decisions)
         return {"valid": False, "errors": errors, "completion": _best_completion(retained, ruleset)}
     if errors:

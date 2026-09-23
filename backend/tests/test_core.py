@@ -121,3 +121,105 @@ def test_improve_and_completion():
     assert not partial["valid"]
     assert partial["completion"] is not None
     assert {"measureId": "M7", "districtId": "nura"} in partial["completion"]["decisions"]
+
+
+def test_events_recalculate_budget_and_baseline(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    payload = {"decisions": [d.model_dump() for d in EXAMPLE]}
+    assert client.post("/api/events/draw", json={"seed": 42}).json() == client.post("/api/events/draw", json={"seed": 42}).json()
+    cut = client.post("/api/simulate", json={**payload, "eventId": "budget_cut"}).json()
+    assert cut["valid"] is False
+    assert cut["budget"] == 90
+    assert "BUDGET_EXCEEDED" in {e["code"] for e in cut["errors"]}
+    smog = client.post("/api/simulate", json={**payload, "eventId": "smog"}).json()
+    assert smog["valid"] is True
+    assert smog["baseline"]["criticalCount"] == 3
+    assert smog["result"]["districts"][2]["beforeIndicators"]["E2"] == 34
+    assert smog["result"]["criticalCount"] == 0
+    assert client.post("/api/explain", json={**payload, "eventId": "smog"}).json()["status"] == "fallback_no_ai"
+    assert client.post("/api/simulate", json={**payload, "eventId": "missing"}).status_code == 422
+    assert client.post("/api/improve", json={**payload, "eventId": "smog"}).status_code == 422
+
+
+def test_leaderboard_and_presentation(monkeypatch, tmp_path):
+    import app.leaderboard as leaderboard
+
+    monkeypatch.setattr(leaderboard, "DB_PATH", tmp_path / "scores.sqlite")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    payload = {"decisions": [d.model_dump() for d in EXAMPLE]}
+    saved = client.post("/api/leaderboard", json={**payload, "teamName": "Команда А"})
+    assert saved.status_code == 200
+    assert saved.json()["score"] == pytest.approx(56.54307)
+    entries = client.get("/api/leaderboard").json()["entries"]
+    assert len(entries) == 1 and entries[0]["rank"] == 1
+    assert client.post("/api/leaderboard", json={**payload, "teamName": "Команда А"}).status_code == 200
+    assert len(client.get("/api/leaderboard").json()["entries"]) == 1
+    assert client.post("/api/leaderboard", json={**payload, "teamName": " "}).status_code == 422
+    exported = client.post("/api/presentation", json=payload).json()
+    assert exported["filename"] == "akim-plan.md"
+    assert "56.54" in exported["markdown"]
+    assert "без AI" in exported["markdown"]
+
+
+def test_synergy_scope_and_same_district_conflicts():
+    transport = [Decision(measureId=m, districtId=d) for m, d in [("M1", "nura"), ("M2", None), ("M8", "nura"), ("M10", "nura"), ("M12", None)]]
+    assert validate_plan(transport) == []
+    assert {tuple(s["measureIds"]) for s in simulate(transport)["synergies"]} == {("M1", "M2"), ("M10", "M12")}
+    ecology = [Decision(measureId=m, districtId=d) for m, d in [("M5", "nura"), ("M6", None), ("M9", "nura"), ("M10", "nura"), ("M12", None)]]
+    assert validate_plan(ecology) == []
+    ecology_synergy = next(s for s in simulate(ecology)["synergies"] if s["measureIds"] == ["M5", "M6"])
+    assert ecology_synergy["districtId"] == "nura"
+    assert ecology_synergy["indicator"] == "E2"
+    different_districts = [Decision(measureId=m, districtId=d) for m, d in [("M4", "saryarka"), ("M7", "nura"), ("M8", "nura"), ("M10", "nura"), ("M12", None)]]
+    assert validate_plan(different_districts) == []
+
+
+def test_strict_critical_threshold_and_clipping():
+    from app.simulator import BASE_INDICATORS, _metrics
+
+    base = {key: dict(row) for key, row in BASE_INDICATORS.items()}
+    base["nura"]["S1"] = 40
+    base["nura"]["S2"] = 40
+    assert _metrics(base)["criticalCount"] == 0
+    base["nura"]["S1"] = 39.999
+    assert _metrics(base)["criticalCount"] == 1
+    base["nura"]["S1"] = 99
+    assert simulate(EXAMPLE, base)["districts"][-1]["afterIndicators"]["S1"] == 100
+
+
+def test_fast_search_score_matches_public_simulator_across_plans():
+    from itertools import islice
+    from app.optimizer import _valid_plans
+
+    for plan in islice(_valid_plans("dataset"), 0, 100000, 1000):
+        assert fast_score(plan) == pytest.approx(simulate([Decision(measureId=m, districtId=d) for m, d in plan])["score"], abs=1e-9)
+
+
+def test_ai_structured_response_path_without_external_call(monkeypatch):
+    import json
+    import openai
+    import app.ai as ai
+    from app.facts import make_facts
+
+    result = simulate(EXAMPLE)
+    facts = make_facts(result, 95)
+    answer = {"summary": "План улучшает Score.", "strengths": ["Критические значения устранены."], "risks": ["Слабым районом остаётся Нура."], "consequences": ["Эффекты проявляются в рамках условной модели."], "recommendations": ["Сравните альтернативы."], "decisions": [{"measureId": d["measureId"], "text": "Мера учтена в расчёте."} for d in result["decisions"]]}
+    calls = []
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            assert kwargs["api_key"] == "test-key"
+            self.responses = self
+
+        def create(self, **kwargs):
+            calls.append(kwargs)
+            return type("Response", (), {"output_text": json.dumps(answer, ensure_ascii=False)})()
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setattr(openai, "OpenAI", FakeClient)
+    ai._model_explain.cache_clear()
+    output = ai.explain(result, facts, "dataset")
+    assert output["status"] == "ai" and output["grounded"] is True
+    assert calls[0]["text"]["format"]["type"] == "json_schema"
+    assert ai.explain(result, facts, "dataset")["cached"] is True
+    ai._model_explain.cache_clear()

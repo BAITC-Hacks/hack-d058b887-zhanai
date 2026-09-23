@@ -7,7 +7,7 @@ from .data_loader import DISTRICT_BY_ID, MEASURE_BY_ID, RULES
 from .schemas import Decision
 
 
-def validate_plan(decisions: list[Decision], ruleset: str = "dataset") -> list[dict]:
+def validate_plan(decisions: list[Decision], ruleset: str = "dataset", budget: int | None = None) -> list[dict]:
     errors: list[dict] = []
 
     def add(code: str, message: str, ids: list[str] | None = None):
@@ -26,8 +26,9 @@ def validate_plan(decisions: list[Decision], ruleset: str = "dataset") -> list[d
         return errors
 
     cost = sum(MEASURE_BY_ID[m]["cost"] for m in ids)
-    if cost > RULES["budget"]:
-        add("BUDGET_EXCEEDED", f"Бюджет превышен: {cost} > {RULES['budget']}.", ids)
+    active_budget = RULES["budget"] if budget is None else budget
+    if cost > active_budget:
+        add("BUDGET_EXCEEDED", f"Бюджет превышен: {cost} > {active_budget}.", ids)
     for decision in decisions:
         measure = MEASURE_BY_ID[decision.measureId]
         if measure["scope"] == "district" and decision.districtId not in DISTRICT_BY_ID:

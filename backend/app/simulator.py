@@ -18,9 +18,11 @@ BASE_INDICATORS = {d["id"]: dict(d["indicators"]) for d in DISTRICTS}
 BASELINE = _metrics(BASE_INDICATORS)
 
 
-def simulate(decisions: list[Decision]) -> dict:
+def simulate(decisions: list[Decision], base_indicators: dict[str, dict[str, float]] | None = None, budget: int | None = None) -> dict:
     """Call only for a valid, complete plan; intermediate values are never rounded."""
-    indicators = {d: dict(values) for d, values in BASE_INDICATORS.items()}
+    base = BASE_INDICATORS if base_indicators is None else base_indicators
+    base_metrics = BASELINE if base_indicators is None else _metrics(base)
+    indicators = {d: dict(values) for d, values in base.items()}
     chosen = {d.measureId: d.districtId for d in decisions}
     resolved = []
     for decision in sorted(decisions, key=lambda d: int(d.measureId[1:])):
@@ -42,8 +44,9 @@ def simulate(decisions: list[Decision]) -> dict:
         for key, value in row.items():
             row[key] = min(100.0, max(0.0, value))
     metrics = _metrics(indicators)
-    districts = [{"districtId": d["id"], "name": d["name"], "beforeScore": BASELINE["districtScores"][d["id"]], "afterScore": metrics["districtScores"][d["id"]], "beforeIndicators": BASE_INDICATORS[d["id"]], "afterIndicators": indicators[d["id"]]} for d in DISTRICTS]
+    districts = [{"districtId": d["id"], "name": d["name"], "beforeScore": base_metrics["districtScores"][d["id"]], "afterScore": metrics["districtScores"][d["id"]], "beforeIndicators": base[d["id"]], "afterIndicators": indicators[d["id"]]} for d in DISTRICTS]
     cost = sum(item["cost"] for item in resolved)
     coverage = {key: sum(item["direction"] == key for item in resolved) for key in RULES["directionNames"]}
     missed = [synergy for synergy in RULES["synergies"] if sum(mid in chosen for mid in synergy["measureIds"]) == 1]
-    return {"score": metrics["score"], "delta": metrics["score"] - BASELINE["score"], "cityAverage": metrics["cityAverage"], "minDistrictScore": metrics["minDistrictScore"], "criticalCount": metrics["criticalCount"], "districts": districts, "synergies": applied, "decisions": resolved, "directionCoverage": coverage, "missedSynergies": missed, "unusedBudget": RULES["budget"] - cost}
+    active_budget = RULES["budget"] if budget is None else budget
+    return {"score": metrics["score"], "delta": metrics["score"] - base_metrics["score"], "cityAverage": metrics["cityAverage"], "minDistrictScore": metrics["minDistrictScore"], "criticalCount": metrics["criticalCount"], "districts": districts, "synergies": applied, "decisions": resolved, "directionCoverage": coverage, "missedSynergies": missed, "unusedBudget": active_budget - cost}

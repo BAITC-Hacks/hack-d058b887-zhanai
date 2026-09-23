@@ -19,11 +19,11 @@ def _numbers(value: str) -> set[float]:
     return {round(float(match.replace(",", ".")), 2) for match in NUMBERS.findall(value)}
 
 
-def _fallback(result: dict, facts: list[str], reason: str) -> dict:
+def _fallback(result: dict, facts: list[str], reason: str, baseline: dict) -> dict:
     weakest = min(result["districts"], key=lambda row: row["afterScore"])
     return {
         "status": "fallback_no_ai", "summary": "Пояснение сформировано по правилам без AI. " + facts[0],
-        "strengths": [f"Критических показателей стало {result['criticalCount']} вместо {BASELINE['criticalCount']}."],
+        "strengths": [f"Критических показателей стало {result['criticalCount']} вместо {baseline['criticalCount']}."],
         "risks": [f"Самый слабый район после мер — {weakest['name']} ({weakest['afterScore']:.2f})."],
         "consequences": [f"Средневзвешенная оценка города: {result['cityAverage']:.2f}."],
         "recommendations": ["Сравните план с допустимой альтернативой через функцию улучшения; это модельная, а не реальная оценка."],
@@ -78,14 +78,16 @@ def _model_explain(cache_key: str, facts_json: str) -> dict:
             {"role": "user", "content": json.dumps({"facts": facts}, ensure_ascii=False)},
         ],
         text={"format": {"type": "json_schema", "name": "city_plan_explanation", "strict": True, "schema": RESPONSE_SCHEMA}},
-        max_output_tokens=1200,
+        reasoning={"effort": "low"},
+        max_output_tokens=1800,
     )
     return json.loads(response.output_text)
 
 
-def explain(result: dict, facts: list[str], ruleset: str) -> dict:
+def explain(result: dict, facts: list[str], ruleset: str, baseline: dict | None = None) -> dict:
+    baseline = BASELINE if baseline is None else baseline
     if not os.getenv("OPENAI_API_KEY"):
-        return _fallback(result, facts, "OPENAI_API_KEY не задан на сервере")
+        return _fallback(result, facts, "OPENAI_API_KEY не задан на сервере", baseline)
     facts_json = json.dumps(facts, ensure_ascii=False, sort_keys=True)
     key = hashlib.sha256((RULES["dataVersion"] + ruleset + MODEL + PROMPT_VERSION + facts_json).encode()).hexdigest()
     for attempt in range(2):
@@ -97,4 +99,4 @@ def explain(result: dict, facts: list[str], ruleset: str) -> dict:
         except Exception:
             # The deterministic scenario must continue when a model is unavailable.
             break
-    return _fallback(result, facts, "AI недоступен или ответ не прошёл проверку фактов")
+    return _fallback(result, facts, "AI недоступен или ответ не прошёл проверку фактов", baseline)

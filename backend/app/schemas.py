@@ -13,3 +13,13 @@ class Decision(BaseModel):
 class PlanRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     decisions: list[Decision] = Field(default_factory=list)
+    eventId: str | None = None
+
+
+class EventDrawRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    seed: int | None = None
+
+
+class LeaderboardRequest(PlanRequest):
+    teamName: str = Field(min_length=1, max_length=40)

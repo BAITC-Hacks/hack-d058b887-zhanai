@@ -5,13 +5,19 @@ from .data_loader import DISTRICTS, MEASURE_BY_ID, RULES
 from .simulator import BASELINE
 
 
-def make_facts(result: dict, cost: int) -> list[str]:
+def make_facts(result: dict, cost: int, baseline: dict | None = None, budget: int | None = None, event: dict | None = None) -> list[str]:
+    baseline = BASELINE if baseline is None else baseline
+    budget = RULES["budget"] if budget is None else budget
     facts = [
-        f"Исходный Score {BASELINE['score']:.2f}, после плана {result['score']:.2f}, изменение {result['delta']:+.2f} балла.",
-        f"Расход {cost} из {RULES['budget']}, остаток {result['unusedBudget']}.",
+        f"Исходный Score {baseline['score']:.2f}, после плана {result['score']:.2f}, изменение {result['delta']:+.2f} балла.",
+        f"Расход {cost} из {budget}, остаток {result['unusedBudget']}.",
         f"Средневзвешенная оценка города {result['cityAverage']:.2f}; оценка худшего района {result['minDistrictScore']:.2f}.",
-        f"Критических значений ниже 40 было {BASELINE['criticalCount']}, стало {result['criticalCount']}.",
+        f"Критических значений ниже 40 было {baseline['criticalCount']}, стало {result['criticalCount']}.",
     ]
+    if event:
+        changes = ", ".join(f"{change['indicator']} {change['delta']:+} в районе {change['districtId']}" for change in event["indicatorChanges"])
+        event_effect = changes or f"бюджет {event['budgetDelta']:+}"
+        facts.append(f"Событие «{event['name']}» изменило условия: {event_effect}.")
     for row in result["districts"]:
         facts.append(f"Район {row['name']}: {row['beforeScore']:.2f} → {row['afterScore']:.2f}.")
     for decision in result["decisions"]:
