@@ -108,25 +108,29 @@
 .workspace-grid { display: grid; grid-template-columns: 290px minmax(0, 1fr) 350px; align-items: start; }
 .catalog-column { position: sticky; top: 110px; height: calc(100dvh - 130px); display: flex; flex-direction: column; }
 .catalog-column > section { flex: 1; }
-.city-column > section[aria-label="Схема районов"] > svg { height: clamp(230px, 28vh, 300px); }
-.presentation .city-column > section[aria-label="Схема районов"] > svg { height: 48vh; }
+.city-map-viewport { display: grid; place-items: center; width: 100%; height: clamp(380px, 47dvh, 540px); }
+.city-map-viewport > svg { display: block; width: 100%; height: 100%; }
+.city-map-district-list { display: none; }
 .mobile-action { display: none; }
 .skip-link { position: fixed; z-index: 60; left: 16px; top: 8px; padding: 12px; background: white; border: 2px solid var(--color-accent); transform: translateY(-200%); }
 .skip-link:focus { transform: none; }
 button, select, a, [role="button"] { touch-action: manipulation; }
 button:not(:disabled), select:not(:disabled) { cursor: pointer; }
-svg [role="button"]:focus-visible polygon { stroke: var(--color-accent); stroke-width: 4; }
+svg [role="button"]:focus-visible > :is(path, polygon) { stroke: var(--color-accent); stroke-width: 4; }
 main, #catalog { scroll-margin-top: 140px; }
 .presentation .workspace-grid { grid-template-columns: minmax(0, 1.35fr) minmax(360px, 1fr); }
 .presentation .catalog-column, .presentation .event-section, .presentation .mobile-action { display: none; }
 .presentation .score-number { font-size: clamp(64px, 6vw, 104px); }
-.presentation .city-column svg { max-height: 52vh; }
+.presentation .city-column { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); align-items: start; gap: 16px; }
+.presentation .city-column > * { margin-block: 0; }
+.presentation .city-map-viewport { height: min(68dvh, 760px); }
 @media (min-width: 1900px) {
   .presentation .workspace-grid { max-width: 2200px; gap: 32px; }
   .presentation .result-column p, .presentation .result-column li { font-size: 18px; }
 }
 @media (max-width: 1199px) {
   .workspace-grid { grid-template-columns: minmax(0, 1fr) minmax(300px, .85fr); padding-bottom: 92px; }
+  .presentation .workspace-grid { grid-template-columns: minmax(0, 1fr); }
   .catalog-column { display: none; }
   .mobile-action { position: fixed; z-index: 30; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--color-surface); border-top: 1px solid var(--color-line); }
   .header-actions { margin-left: auto; }
@@ -146,7 +150,24 @@ main, #catalog { scroll-margin-top: 140px; }
   .result-column { grid-row: auto; }
   [role="dialog"] input, [role="dialog"] select { font-size: 16px; }
   .city-column > section > div:last-child { flex-wrap: wrap; }
-  .presentation .city-column svg { max-height: none; }
+  .city-map-viewport, .presentation .city-map-viewport { height: auto; aspect-ratio: 780 / 900; max-height: 72dvh; }
+  .city-map-district-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+  .city-map-district-button { display: flex; flex-wrap: wrap; align-content: center; align-items: baseline; justify-content: space-between; gap: 2px 8px; min-height: 52px; min-width: 0; padding: 7px 9px; border: 1px solid var(--color-line-2); border-radius: 8px; background: var(--color-surface); color: var(--color-ink); text-align: left; font-size: 12px; line-height: 1.35; }
+  .city-map-district-button.is-selected { border-color: var(--color-accent); background: var(--color-accent-soft); }
+  .city-map-district-button[data-drop-state="allowed"] { border-color: var(--color-accent); }
+  .city-map-district-button[data-drop-state="blocked"] { border-color: var(--color-critical); }
+  .city-map-district-name { font-size: 13px; font-weight: 600; }
+  .city-map-district-critical { width: 100%; color: #861f1f; font-size: 11px; }
+  .city-map-district-list > button:last-child { grid-column: span 2; }
+  .presentation .city-column { display: block; }
+  .presentation .city-column > * + * { margin-block-start: 16px; }
+}
+@media (max-width: 380px) {
+  .city-map-district-list { grid-template-columns: minmax(0, 1fr); }
+  .city-map-district-list > button:last-child { grid-column: auto; }
+  .header-actions > * { min-width: 0; }
+  .mobile-action { gap: 8px; padding-inline: 10px; }
+  .mobile-action > button { min-width: 0; }
 }
 @media (pointer: fine) and (min-width: 1200px) {
   .portfolio-row select, .portfolio-row button:not([aria-label]) { min-height: 32px; }

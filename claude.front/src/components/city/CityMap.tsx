@@ -8,16 +8,7 @@ import { readMeasureDrag } from '../../lib/measureDrag'
 import { DISTRICT_SCALE_MAX, DISTRICT_SCALE_MIN, DISTRICT_SCALE_STEPS, districtFill, isDarkFill } from '../../lib/scales'
 import { f1 } from '../../lib/format'
 import { SectionTitle } from '../ui'
-
-// Схематичные контуры пяти районов: правый берег сверху, левый снизу, между
-// ними река Есиль. Это схема, а не географическая карта.
-const SHAPES: Record<DistrictId, { points: string; label: [number, number] }> = {
-  baikonur: { points: '22,18 378,18 382,74 300,82 200,76 100,84 18,72', label: [200, 50] },
-  saryarka: { points: '18,72 100,84 200,76 202,142 120,150 16,140', label: [108, 113] },
-  almaty: { points: '200,76 300,82 382,74 384,142 300,150 202,142', label: [292, 113] },
-  esil: { points: '150,164 300,158 384,156 382,232 300,238 150,236', label: [268, 200] },
-  nura: { points: '16,158 150,164 150,236 80,242 18,232', label: [82, 200] },
-}
+import { ASTANA_DISTRICT_GEOMETRY } from './geoAstana'
 
 interface Props {
   catalog: Catalog
@@ -76,14 +67,16 @@ export function CityMap({ catalog, districts, showAfter, selected, onSelect, dra
       ? `${catalog.districts.find((d) => d.id === hovered)?.name}: ${hoveredReason ?? 'отпустите, чтобы добавить меру'}.`
       : `${measure.id}: перенесите на район.${recommended ? ` Нужнее всего: ${catalog.districts.find((d) => d.id === recommended.districtId)?.name} (${primaryIndicator(measure)}: ${f1(recommended.value)}).` : ''} Esc — отмена.`
   return (
-    <section aria-label="Схема районов" className="card p-4">
+    <section aria-label="Карта районов" className="card p-4">
       <SectionTitle aside={showAfter ? 'оценка района: до → после плана' : 'оценка района сейчас'}>Город</SectionTitle>
+      <div className="city-map-viewport">
       <svg
         data-city-map="true"
-        viewBox="0 0 400 250"
-        className={clsx('block w-full rounded-lg', measure && 'outline-2 outline-offset-4 outline-accent/40')}
+        viewBox="80 50 780 900"
+        preserveAspectRatio="xMidYMid meet"
+        className={clsx('block h-full w-full rounded-lg', measure && 'outline-2 outline-offset-4 outline-accent/40')}
         role="group"
-        aria-label="Пять районов Астаны, схема"
+        aria-label="Упрощённые границы пяти районов Астаны"
         onDragOver={(e) => {
           if (!measure) return
           setDropError(null)
@@ -101,7 +94,7 @@ export function CityMap({ catalog, districts, showAfter, selected, onSelect, dra
           const ink = dark ? '#ffffff' : '#0b0b0b'
           const ink2 = dark ? 'rgba(255,255,255,0.82)' : '#52514e'
           const crit = showAfter ? r.criticalAfter.length : r.criticalBefore.length
-          const [lx, ly] = SHAPES[d.id].label
+          const { path, label: [lx, ly] } = ASTANA_DISTRICT_GEOMETRY[d.id]
           const isSel = selected === d.id
           const target = targets.find((t) => t.districtId === d.id)
           const blocked = measure ? targetReason(d.id) : null
@@ -132,31 +125,31 @@ export function CityMap({ catalog, districts, showAfter, selected, onSelect, dra
               onDrop={(e) => drop(e, d.id)}
             >
               <title>{measure ? blocked ?? `Добавить ${measure.id}${measure.scope === 'city' ? ' для всего города' : ` в район ${d.name}`}` : `${d.name}: нажмите, чтобы увидеть все показатели`}</title>
-              <polygon
-                points={SHAPES[d.id].points}
+              <path
+                d={path}
                 fill={fill}
                 stroke={stroke}
-                strokeWidth={isHovered || focused === d.id ? 4 : isSel || measure ? 2.5 : 2}
-                strokeDasharray={blocked ? '4 3' : undefined}
+                strokeWidth={isHovered || focused === d.id ? 6 : isSel || measure ? 4 : 3}
+                strokeDasharray={blocked ? '7 5' : undefined}
                 strokeLinejoin="round"
                 className="transition-[fill] duration-500"
               />
-              <text x={lx} y={ly - 6} textAnchor="middle" fontSize="15" fontWeight="600" fill={ink}>{d.name}</text>
-              <text x={lx} y={ly + 10} textAnchor="middle" fontSize="12.5" fill={ink2} className="tnum">
+              <text x={lx} y={ly - 9} textAnchor="middle" fontSize="30" fontWeight="600" fill={ink}>{d.name}</text>
+              <text x={lx} y={ly + 19} textAnchor="middle" fontSize="23" fill={ink2} className="tnum">
                 {showAfter ? `${f1(r.beforeScore)} → ${f1(r.afterScore)}` : f1(value)}
               </text>
               {measure ? (
-                <g transform={`translate(${lx - 41}, ${ly + 16})`} aria-hidden="true">
-                  <rect width="82" height="15" rx="4" fill={blocked ? '#fbe9e9' : '#e9f0ff'} />
-                  <text x="41" y="11" textAnchor="middle" fontSize="9.5" fontWeight="600" fill={blocked ? '#7a1f1f' : '#1d4ed8'}>
+                <g transform={`translate(${lx - 65}, ${ly + 29})`} aria-hidden="true">
+                  <rect width="130" height="24" rx="6" fill={blocked ? '#fbe9e9' : '#e9f0ff'} />
+                  <text x="65" y="17" textAnchor="middle" fontSize="15" fontWeight="600" fill={blocked ? '#7a1f1f' : '#1d4ed8'}>
                     {blocked ? 'недоступно' : target?.isWorst ? 'нужнее всего' : 'можно добавить'}
                   </text>
                 </g>
               ) : crit > 0 && (
-                <g transform={`translate(${lx - 34}, ${ly + 16})`}>
-                  <rect width="68" height="15" rx="4" fill="#fbe9e9" stroke="#d03b3b" strokeWidth="0.75" />
-                  <TriangleAlert x={4} y={2.5} width={10} height={10} color="#7a1f1f" strokeWidth={2.4} />
-                  <text x="17" y="11" fontSize="9.5" fontWeight="600" fill="#7a1f1f">
+                <g transform={`translate(${lx - 52}, ${ly + 29})`}>
+                  <rect width="104" height="24" rx="6" fill="#fbe9e9" stroke="#d03b3b" strokeWidth="1" />
+                  <TriangleAlert x={7} y={4} width={16} height={16} color="#7a1f1f" strokeWidth={2.4} />
+                  <text x="27" y="17" fontSize="15" fontWeight="600" fill="#7a1f1f">
                     {crit} критич.
                   </text>
                 </g>
@@ -164,12 +157,41 @@ export function CityMap({ catalog, districts, showAfter, selected, onSelect, dra
             </g>
           )
         })}
-        <g pointerEvents="none" aria-hidden="true">
-          <path d="M14 150 C 90 142, 150 160, 210 152 S 330 146, 386 150" fill="none" stroke="#f9f9f7" strokeWidth="9" strokeLinecap="round" />
-          <path d="M14 150 C 90 142, 150 160, 210 152 S 330 146, 386 150" fill="none" stroke="#c3c2b7" strokeWidth="1" strokeLinecap="round" />
-          <text x="18" y="146" fontSize="9" fill="#898781">р. Есиль</text>
-        </g>
       </svg>
+      </div>
+
+      <div className="city-map-district-list" aria-label="Выбор района">
+        {catalog.districts.map((d) => {
+          const r = districts.find((x) => x.districtId === d.id)
+          if (!r) return null
+          const crit = showAfter ? r.criticalAfter.length : r.criticalBefore.length
+          const blocked = measure ? targetReason(d.id) : null
+          return (
+            <button
+              key={d.id}
+              type="button"
+              data-district-id={d.id}
+              data-drop-state={measure ? blocked ? 'blocked' : 'allowed' : undefined}
+              aria-pressed={selected === d.id}
+              aria-label={`${d.name}: ${showAfter ? `${f1(r.beforeScore)} до, ${f1(r.afterScore)} после` : f1(r.beforeScore)}${crit ? `, ${crit} критических` : ''}${blocked ? `; ${blocked}` : ''}`}
+              className={clsx('city-map-district-button', selected === d.id && 'is-selected')}
+              onClick={() => onSelect(d.id)}
+              onDragEnter={() => { if (measure) { setHovered(d.id); setDropError(null) } }}
+              onDragOver={(e) => {
+                if (!measure) return
+                e.preventDefault()
+                setHovered(d.id)
+                e.dataTransfer.dropEffect = blocked ? 'none' : 'copy'
+              }}
+              onDrop={(e) => drop(e, d.id)}
+            >
+              <span className="city-map-district-name">{d.name}</span>
+              <span className="tnum">{showAfter ? `${f1(r.beforeScore)} → ${f1(r.afterScore)}` : f1(r.beforeScore)}</span>
+              {crit > 0 && <span className="city-map-district-critical">{crit} критич.</span>}
+            </button>
+          )
+        })}
+      </div>
 
       <p role="status" aria-live="polite" className={clsx('mt-2 min-h-5 text-[12px] leading-relaxed', hoveredReason || dropError ? 'text-critical' : 'text-ink-2')}>
         {activeHint ?? dropError ?? (decisions.length === 5 ? 'Пять решений на карте. Нажмите район, чтобы сравнить показатели.' : 'Начните с районов, где есть критические показатели.')}
@@ -183,7 +205,7 @@ export function CityMap({ catalog, districts, showAfter, selected, onSelect, dra
           <span className="tnum">{DISTRICT_SCALE_MAX}</span>
           <span>темнее = выше оценка района</span>
         </div>
-        <span className={clsx(selected && 'text-ink-2')}>схема, не карта · нажмите район, чтобы увидеть 10 показателей</span>
+        <span className={clsx(selected && 'text-ink-2')}>упрощённые границы · нажмите район, чтобы увидеть 10 показателей · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">OpenStreetMap contributors, ODbL</a></span>
       </div>
     </section>
   )
