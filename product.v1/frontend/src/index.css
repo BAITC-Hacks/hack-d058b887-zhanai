@@ -1,0 +1,208 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Onest", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-page: #F3F5F4;
+  --color-surface: #ffffff;
+  --color-surface-2: #eaf0ed;
+  --color-surface-3: #dfe9e4;
+
+  --color-ink: #16252A;
+  --color-ink-2: #455a60;
+  --color-ink-3: #5b6c70;
+
+  --color-line: #d8e3df;
+  --color-line-2: #b8cac4;
+
+  --color-accent: #1F7FA6;
+  --color-accent-soft: #BFD8E4;
+  --color-accent-ink: #175d7a;
+
+  --color-up: #3F7A37;
+  --color-down: #A4463F;
+
+  --color-critical: #A4463F;
+  --color-critical-soft: #F0C9C4;
+  --color-serious: #A8661A;
+  --color-serious-soft: #EFD3AE;
+  --color-warn: #A8661A;
+  --color-warn-soft: #EFD3AE;
+  --color-good: #3F7A37;
+  --color-good-soft: #CFE2C4;
+
+  --radius-card: 12px;
+  --shadow-card: 0 1px 2px rgba(11, 11, 11, 0.04), 0 0 0 1px rgba(11, 11, 11, 0.06);
+  --shadow-pop: 0 12px 32px rgba(11, 11, 11, 0.14), 0 0 0 1px rgba(11, 11, 11, 0.06);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  body {
+    @apply bg-page text-ink font-sans antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility card {
+  @apply bg-surface rounded-card;
+  border: 1px solid var(--color-line);
+}
+
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-2) transparent;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility animate-fade-up {
+  animation: fade-up 220ms ease-out both;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200px 0;
+  }
+  to {
+    background-position: 200px 0;
+  }
+}
+
+@utility skeleton {
+  @apply rounded-md bg-surface-2;
+  background-image: linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-surface-3) 50%, var(--color-surface-2) 100%);
+  background-size: 400px 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+/* ---- Astana map ---- */
+.astana-map {
+  position: relative;
+  width: 100%;
+  max-width: 476px; /* viewBox ~0.85 w/h → высота карты не больше ~560px */
+  margin-inline: auto;
+}
+.astana-brand { position: absolute; left: 4.2%; top: 4.2%; z-index: 1; font: 700 clamp(11px, 1.6vw, 15px) "Unbounded", system-ui, sans-serif; letter-spacing: .14em; color: #16252A; pointer-events: none; }
+.city-map-card { background: #F3F5F4; border-color: #F3F5F4; }
+.astana-dist {
+  cursor: pointer;
+  transition: fill 0.18s;
+}
+.astana-dist:hover { filter: brightness(.96); }
+.astana-pill {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  margin: 0;
+  padding: .5em .85em;
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  background: #ffffff;
+  color: #14232A;
+  line-height: 1.15;
+  box-shadow: 0 1px 2px rgba(22,37,42,.18), 0 4px 12px rgba(22,37,42,.12);
+  font-family: "Onest", system-ui, sans-serif;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.astana-pill:hover {
+  box-shadow: 0 2px 4px rgba(22,37,42,.22), 0 6px 16px rgba(22,37,42,.16);
+}
+.astana-pill:focus-visible {
+  outline: 3px solid #16252A;
+  outline-offset: 2px;
+}
+.astana-pill-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  font-size: clamp(13px, 2vw, 19px);
+}
+.astana-pill-score {
+  font-size: clamp(10.5px, 2.8vw, 12px);
+  color: #455a60;
+  font-variant-numeric: tabular-nums;
+}
+.astana-pill[aria-pressed='true'] {
+  z-index: 1;
+}
+.astana-pill[aria-pressed='true'] .astana-pill-score {
+  color: inherit;
+  font-weight: 600;
+}
+.astana-pill[aria-pressed='true'] .astana-pill-name {
+  font-weight: 800;
+  font-size: clamp(15px, 2.3vw, 22px);
+}
+.astana-pill-crit {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 15px;
+  color: #A4463F;
+  background: var(--color-critical-soft);
+  box-shadow: inset 0 0 0 0.75px var(--color-critical);
+}
+@media (prefers-reduced-motion: reduce) {
+  .astana-dist,
+  .astana-pill {
+    transition: none;
+  }
+}
+/* ---- /Astana map ---- */
+
+@media (max-width: 760px) {
+  .app-header { flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+  .header-brand { flex: 1 1 100%; min-width: 0; }
+  .header-brand p { display: none; }
+  .header-budget { order: 3; flex: 1 1 100%; }
+  .header-actions { order: 2; flex: 1 1 100%; min-width: 0; flex-wrap: wrap; gap: 6px; }
+  .header-actions select { flex: 1 1 130px; min-width: 0; max-width: 100%; font-size: 12px; }
+  .header-actions button { min-width: 0; padding-inline: 8px; font-size: 12px; }
+}
+
+@media (max-width: 380px) {
+  .header-actions button:last-child { flex: 1 1 100%; }
+}

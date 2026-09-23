@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Кэш перебора и SQLite-лидерборд (создаются при запуске)
+backend/data/cache/
+
+# Node / Vite
+node_modules/
+dist/
+
+# Секреты и локальные настройки
+.env
+.env.local
+*.local
+
+# Системное
+.DS_Store
+*.log
