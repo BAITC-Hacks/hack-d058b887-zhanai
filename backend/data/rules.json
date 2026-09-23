@@ -1,0 +1,12 @@
+{
+  "dataVersion":"akim-dataset-v1",
+  "budget":100,
+  "decisionCount":5,
+  "horizonQuarters":8,
+  "maxPerDirection":2,
+  "indicatorWeights":{"T1":0.10,"T2":0.10,"E1":0.09,"E2":0.11,"S1":0.11,"S2":0.11,"B1":0.09,"B2":0.09,"C1":0.10,"C2":0.10},
+  "indicatorNames":{"T1":"Разгрузка дорог","T2":"Доступность общественного транспорта","E1":"Озеленение","E2":"Качество воздуха","S1":"Школы и детсады","S2":"Поликлиники и первичная медпомощь","B1":"Безопасность улиц","B2":"Безопасность дорожного движения","C1":"Надёжность ЖКХ","C2":"Скорость решения обращений жителей"},
+  "directionNames":{"transport":"Транспорт","ecology":"Экология","social":"Соцсфера","safety":"Безопасность","services":"Сервисы"},
+  "synergies":[{"measureIds":["M1","M2"],"indicator":"T1","bonus":2,"districtFrom":"M1"},{"measureIds":["M10","M12"],"indicator":"B1","bonus":2,"districtFrom":"M10"},{"measureIds":["M5","M6"],"indicator":"E2","bonus":2,"districtFrom":"M5"}],
+  "incompatibilities":[{"measureIds":["M1","M3"],"scope":"any"},{"measureIds":["M4","M7"],"scope":"same_district"},{"measureIds":["M5","M13"],"scope":"same_district"}]
+}
