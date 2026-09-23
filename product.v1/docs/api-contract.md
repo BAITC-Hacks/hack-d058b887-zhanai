@@ -152,3 +152,13 @@
 План (можно с `eventId`) → `{filename: "akim-plan.md", markdown: "...", explanationStatus: "ai" | "fallback_no_ai"}`. Документ: итог Score, решения, районы до/после, факты расчёта, выводы AI. Если AI недоступен, раздел помечен «Шаблонное объяснение без AI».
 
 Источник истины для правил: 14 мероприятий, лаги, синергии, ограничения и формула из `Доки/Датасет районов.docx` (перенесены в `backend/data/*.json`). Сервер не выдаёт реальных прогнозов.
+
+
+## POST /api/agent — AI-агент с инструментами
+
+Тело: `{"decisions": [...], "eventId": null, "goal": "подтянуть Нуру"}` (`goal` необязателен, до 300 символов).
+
+Ответ: `{status: "ai"|"unavailable"|"error", model, reason, summary, findings[], risks[], steps[], recommendation, grounded, iterations}`.
+`steps[]` — каждый вызов инструмента: `{tool: "simulate_plan"|"find_improvements", title, decisions, valid, score, delta, cost, note}` (числа из симулятора).
+`recommendation` — `{decisions, rationale, valid, score, delta, cost, criticalCount, errors}`: план агента, заново пересчитанный сервером.
+`grounded=false` — в тексте модели есть число, которого не было в результатах инструментов. Без `OPENAI_API_KEY` — `status: "unavailable"`.

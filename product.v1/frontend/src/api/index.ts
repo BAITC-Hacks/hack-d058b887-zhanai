@@ -81,6 +81,7 @@ export const api: Api = {
   leaderboard: () => implementation().then((a) => a.leaderboard()),
   submit: (teamName, decisions, eventId) => implementation().then((a) => a.submit(teamName, decisions, eventId)),
   presentation: (decisions, eventId) => implementation().then((a) => a.presentation(decisions, eventId)),
+  agent: (decisions, eventId, goal) => implementation().then((a) => a.agent(decisions, eventId, goal)),
 }
 
 export type * from './types'

@@ -24,3 +24,7 @@ class EventDrawRequest(BaseModel):
 
 class LeaderboardRequest(PlanRequest):
     teamName: str = Field(min_length=1, max_length=40)
+
+
+class AgentRequest(PlanRequest):
+    goal: str | None = Field(default=None, max_length=300)

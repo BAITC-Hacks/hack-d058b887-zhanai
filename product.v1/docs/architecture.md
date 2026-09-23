@@ -36,6 +36,7 @@ usePlan → useSimulation ── POST /api/simulate {decisions, eventId}
    ├─ панель Score, карта, плитки, портфель показывают result ?? preview
    ├─ status = valid → POST /api/improve (автоматически) → «Улучшить план», процентиль
    ├─ «AI-анализ» → POST /api/explain → simulate → facts → OpenAI → guard → ai | fallback_no_ai
+   ├─ «Запустить агента» → POST /api/agent → OpenAI (function calling) ⇄ simulate_plan / find_improvements → пересчёт рекомендации → проверка чисел
    ├─ «Разыграть» → POST /api/events/draw {excludeId} → eventId в следующих запросах
    ├─ «Команды» → POST /api/leaderboard (сервер пересчитывает) → GET /api/leaderboard
    └─ «Скачать презентацию» → POST /api/presentation → akim-plan.md
@@ -51,6 +52,7 @@ usePlan → useSimulation ── POST /api/simulate {decisions, eventId}
 | GET | `/api/catalog` | районы, меры, правила, `baseline`, `events` |
 | POST | `/api/simulate` | проверка + `result` / `preview` |
 | POST | `/api/explain` | AI-объяснение с проверкой чисел |
+| POST | `/api/agent` | AI-агент: сам вызывает симулятор и перебор, возвращает шаги, выводы и проверенный рекомендованный план |
 | POST | `/api/improve` | перебор: процентиль, оптимум, лучшая замена, дополнение |
 | GET | `/api/events` | список событий |
 | POST | `/api/events/draw` | случайное событие (`seed`, `excludeId`) |

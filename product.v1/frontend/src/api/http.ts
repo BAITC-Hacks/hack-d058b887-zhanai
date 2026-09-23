@@ -2,7 +2,7 @@
 // docs/api-contract.md). Ответы сервера приводятся к типам интерфейса в
 // adapter.ts, поэтому остальной код не знает о различиях форматов.
 
-import type { Api, Catalog, Decision } from './types'
+import type { AgentResponse, Api, Catalog, Decision } from './types'
 import {
   IMPROVE_AFTER_EVENT_MESSAGE,
   adaptCatalog,
@@ -127,6 +127,20 @@ export const httpApi: Api = {
   async presentation(decisions, eventId) {
     const r = await post<{ markdown: string }>('/presentation', plan(decisions, eventId))
     return r.markdown
+  },
+
+  async agent(decisions, eventId, goal) {
+    // Агент делает несколько вызовов модели и симулятора (20–60 с), поэтому
+    // короткого таймаута здесь нет.
+    const r = await post<AgentResponse>('/agent', { ...plan(decisions, eventId), goal: goal?.trim() || null })
+    const norm = (ds: Decision[] | null | undefined): Decision[] => (ds ?? []).map((d) => ({ measureId: d.measureId, districtId: d.districtId ?? null }))
+    return {
+      ...r,
+      findings: r.findings ?? [],
+      risks: r.risks ?? [],
+      steps: (r.steps ?? []).map((st) => ({ ...st, decisions: st.decisions ? norm(st.decisions) : null })),
+      recommendation: r.recommendation ? { ...r.recommendation, decisions: norm(r.recommendation.decisions), errors: r.recommendation.errors ?? [] } : null,
+    }
   },
 }
 

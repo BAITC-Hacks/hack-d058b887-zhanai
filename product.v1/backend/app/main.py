@@ -19,14 +19,15 @@ from fastapi.staticfiles import StaticFiles
 PRODUCT_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(PRODUCT_ROOT / ".env")
 
-from .ai import MODEL, explain  # noqa: E402  (env must be loaded first)
+from .agent import run_agent  # noqa: E402  (env must be loaded first)
+from .ai import MODEL, explain  # noqa: E402
 from .data_loader import DISTRICTS, MEASURE_BY_ID, MEASURES, RULES  # noqa: E402
 from .events import BY_ID as EVENT_BY_ID, EVENTS, changed_baseline, draw  # noqa: E402
 from .facts import make_facts  # noqa: E402
 from .leaderboard import list_entries, save  # noqa: E402
 from .optimizer import improve  # noqa: E402
 from .presentation import render_brief  # noqa: E402
-from .schemas import EventDrawRequest, LeaderboardRequest, PlanRequest  # noqa: E402
+from .schemas import AgentRequest, EventDrawRequest, LeaderboardRequest, PlanRequest  # noqa: E402
 from .simulator import BASELINE, simulate  # noqa: E402
 from .validator import validate_plan  # noqa: E402
 
@@ -106,6 +107,20 @@ def explanation(request: PlanRequest):
         raise HTTPException(status_code=422, detail={"errors": calculated["errors"]})
     result = calculated["result"]
     return explain(result, result["facts"], RULESET, calculated["baseline"])
+
+
+@app.post("/api/agent")
+def agent(request: AgentRequest):
+    """Tool-using AI advisor: the model calls the simulator and the optimizer itself."""
+    if request.eventId is not None and request.eventId not in EVENT_BY_ID:
+        raise HTTPException(status_code=422, detail={"errors": [{"code": "UNKNOWN_EVENT", "message": "Неизвестное событие.", "measureIds": []}]})
+    return run_agent(
+        request.decisions, request.goal,
+        simulate_fn=lambda decisions: simulation(PlanRequest(decisions=decisions, eventId=request.eventId)),
+        improve_fn=lambda decisions: improve(decisions, RULESET),
+        event_active=request.eventId is not None,
+        model=os.getenv("AGENT_MODEL") or MODEL,
+    )
 
 
 @app.post("/api/improve")

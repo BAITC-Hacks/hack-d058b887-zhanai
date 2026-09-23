@@ -105,6 +105,22 @@ export const mockApi: Api = {
     await wait(150)
     return presentationMarkdown(decisions, eventById(eventId))
   },
+
+  async agent() {
+    await wait(150)
+    return {
+      status: 'unavailable',
+      model: null,
+      reason: 'AI-агент работает только с сервером и ключом OpenAI. Запустите ./scripts/start.sh и задайте OPENAI_API_KEY в .env.',
+      summary: '',
+      findings: [],
+      risks: [],
+      steps: [],
+      recommendation: null,
+      grounded: true,
+      iterations: 0,
+    }
+  },
 }
 
 export type { Decision }

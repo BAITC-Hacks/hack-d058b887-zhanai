@@ -143,6 +143,46 @@ export interface ImproveResponse {
   message: string | null
 }
 
+export type AgentTool = 'simulate_plan' | 'find_improvements'
+
+/** Шаг агента: вызов инструмента. Числа посчитаны симулятором сервера. */
+export interface AgentStep {
+  tool: AgentTool
+  title: string
+  decisions: Decision[] | null
+  valid: boolean | null
+  score: number | null
+  delta: number | null
+  cost: number | null
+  note: string
+}
+
+export interface AgentRecommendation {
+  decisions: Decision[]
+  rationale: string
+  valid: boolean
+  score: number | null
+  delta: number | null
+  cost: number | null
+  criticalCount: number | null
+  errors: string[]
+}
+
+export interface AgentResponse {
+  status: 'ai' | 'unavailable' | 'error'
+  model: string | null
+  /** Для unavailable/error: объяснение по-русски. */
+  reason: string | null
+  summary: string
+  findings: string[]
+  risks: string[]
+  steps: AgentStep[]
+  recommendation: AgentRecommendation | null
+  /** false — в тексте модели есть числа, которых нет в результатах инструментов. */
+  grounded: boolean
+  iterations: number
+}
+
 export interface LeaderboardEntry {
   id: string
   teamName: string
@@ -164,4 +204,5 @@ export interface Api {
   leaderboard(): Promise<LeaderboardEntry[]>
   submit(teamName: string, decisions: Decision[], eventId?: string | null): Promise<LeaderboardEntry>
   presentation(decisions: Decision[], eventId?: string | null): Promise<string>
+  agent(decisions: Decision[], eventId?: string | null, goal?: string | null): Promise<AgentResponse>
 }

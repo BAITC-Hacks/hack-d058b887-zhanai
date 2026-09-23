@@ -11,6 +11,7 @@ import { DistrictDetail } from './components/city/DistrictDetail'
 import { Portfolio } from './components/portfolio/Portfolio'
 import { ResultPanel } from './components/result/ResultPanel'
 import { AiPanel, type AiStatus } from './components/result/AiPanel'
+import { AgentPanel } from './components/result/AgentPanel'
 import { ImproveCard } from './components/result/ImproveCard'
 import { EventCard } from './components/result/EventCard'
 import { LeaderboardDrawer } from './components/LeaderboardDrawer'
@@ -164,6 +165,7 @@ export default function App() {
         <div className="space-y-5">
           <ResultPanel catalog={catalog} sim={sim.data} loading={sim.loading} status={status} decisionCount={plan.decisions.length} improve={improve.data} />
           <AiPanel catalog={catalog} status={aiStatus} data={ai.data} error={ai.error} canRun={status === 'valid'} onRun={runAnalysis} onDownload={download} downloading={downloading} />
+          <AgentPanel catalog={catalog} decisions={plan.decisions} eventId={event?.id ?? null} onApply={plan.replace} />
           {status === 'valid' && (
             <ImproveCard catalog={catalog} data={improve.data} loading={improve.loading} currentScore={shown?.score ?? null} onApply={plan.replace} currentDecisions={plan.decisions} />
           )}

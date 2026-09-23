@@ -1,3 +1,4 @@
+import json
 from fastapi.testclient import TestClient
 import pytest
 
@@ -259,3 +260,61 @@ def test_fallback_explanation_is_rich_and_grounded(monkeypatch):
     assert any("синергия" in line.lower() for line in answer["strengths"])
     body = {k: answer[k] for k in ("summary", "strengths", "risks", "consequences", "recommendations", "decisions")}
     assert _grounded(body, facts, result)
+
+
+def test_agent_without_key_is_honest(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    body = client.post("/api/agent", json={"decisions": [d.model_dump() for d in EXAMPLE], "goal": "подтянуть Нуру"}).json()
+    assert body["status"] == "unavailable" and body["recommendation"] is None and "OPENAI_API_KEY" in body["reason"]
+
+
+class _Item:
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+
+
+class _FakeResponses:
+    """Scripted model: checks the plan, asks for improvements, then recommends the best swap."""
+
+    def __init__(self):
+        self.calls = []
+
+    def create(self, **kwargs):
+        self.calls.append(kwargs)
+        example = [d.model_dump() for d in EXAMPLE]
+        step = len(self.calls)
+        if step == 1:
+            return _Item(id="r1", output=[_Item(type="function_call", name="simulate_plan", call_id="c1", arguments=json.dumps({"decisions": example}))], output_text="")
+        if step == 2:
+            assert kwargs["previous_response_id"] == "r1" and kwargs["input"][0]["call_id"] == "c1"
+            return _Item(id="r2", output=[_Item(type="function_call", name="find_improvements", call_id="c2", arguments=json.dumps({"decisions": example}))], output_text="")
+        swapped = [d for d in example if d["measureId"] != "M5"] + [{"measureId": "M3", "districtId": "nura"}]
+        answer = {"summary": "План даёт 56.54, лучшая замена поднимает Score до 57.21.", "findings": ["Нура остаётся худшим районом."], "risks": ["Линия ЛРТ реализуется медленнее."],
+                  "recommendation": {"decisions": swapped, "rationale": "Замена M5 на M3 в Нуре усиливает худший район."}}
+        return _Item(id="r3", output=[_Item(type="message")], output_text=json.dumps(answer, ensure_ascii=False))
+
+
+def test_agent_tool_loop_with_scripted_model():
+    from app.agent import run_agent
+    from app.main import PlanRequest, simulation
+
+    fake = _FakeResponses()
+    result = run_agent(EXAMPLE, "подтянуть Нуру", lambda ds: simulation(PlanRequest(decisions=ds)), lambda ds: improve(ds, "dataset"), False, "test-model", client=_Item(responses=fake))
+    assert result["status"] == "ai" and result["iterations"] == 3
+    assert [s["tool"] for s in result["steps"]] == ["simulate_plan", "find_improvements"]
+    assert result["steps"][0]["score"] == pytest.approx(56.54307)
+    rec = result["recommendation"]
+    assert rec["valid"] is True and rec["score"] == pytest.approx(57.21, abs=0.01)
+    assert result["grounded"] is True
+    fake.calls.clear()
+    lying = _FakeResponses()
+    original = lying.create
+
+    def create(**kw):
+        r = original(**kw)
+        if r.id == "r3":
+            r.output_text = r.output_text.replace("57.21", "61.5")
+        return r
+
+    lying.create = create
+    assert run_agent(EXAMPLE, None, lambda ds: simulation(PlanRequest(decisions=ds)), lambda ds: improve(ds, "dataset"), False, "m", client=_Item(responses=lying))["grounded"] is False
